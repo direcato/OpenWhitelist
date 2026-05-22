@@ -27,22 +27,22 @@ permissions:
       openwhitelist.accept: true
   openwhitelist.add:
     description: Add players to the whitelist
-    default: op
+    default: true
   openwhitelist.remove:
     description: Remove players from the whitelist
-    default: op
+    default: true
   openwhitelist.list:
     description: View the whitelist
-    default: op
+    default: true
   openwhitelist.reload:
     description: Reload config and whitelist
-    default: op
+    default: true
   openwhitelist.on:
     description: Enable the whitelist
-    default: op
+    default: true
   openwhitelist.off:
     description: Disable the whitelist
-    default: op
+    default: true
   openwhitelist.requests:
     description: View pending whitelist requests
     default: true
