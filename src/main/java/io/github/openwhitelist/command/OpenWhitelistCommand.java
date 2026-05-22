@@ -1,7 +1,6 @@
 package io.github.openwhitelist.command;
 
 import io.github.openwhitelist.OpenWhitelistPlugin;
-import io.github.openwhitelist.geyser.FloodgateHandler;
 import io.github.openwhitelist.request.PendingRequest;
 import io.github.openwhitelist.whitelist.WhitelistEntry;
 import io.github.openwhitelist.whitelist.WhitelistEntry.PlayerType;
@@ -17,7 +16,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
@@ -66,7 +64,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
 
     private void sendUsage(CommandSender sender, String label) {
         sender.sendMessage(ChatColor.GOLD + "===== OpenWhitelist =====");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " add <name> [java|bedrock]" + ChatColor.GRAY + " - Add a player");
+        sender.sendMessage(ChatColor.YELLOW + "/" + label + " add <name>" + ChatColor.GRAY + " - Add a player");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " remove <name>" + ChatColor.GRAY + " - Remove a player");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " list [page]" + ChatColor.GRAY + " - List whitelisted players");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " reload" + ChatColor.GRAY + " - Reload config & whitelist");
@@ -83,27 +81,16 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /openw add <name> [java|bedrock]");
+            sender.sendMessage(ChatColor.RED + "Usage: /openw add <name>");
             return true;
         }
 
         String rawName = args[1];
         String name = rawName;
-        PlayerType type = PlayerType.JAVA;
 
-        if (args.length >= 3) {
-            String typeArg = args[2].toLowerCase();
-            if (typeArg.equals("bedrock") || typeArg.equals("b")) {
-                type = PlayerType.BEDROCK;
-            }
-        }
-
-        boolean hasPrefix = plugin.getConfigManager().hasBedrockPrefix(rawName);
-        if (hasPrefix) {
-            type = PlayerType.BEDROCK;
-            if (plugin.getConfigManager().isAutoStripPrefix()) {
-                name = plugin.getConfigManager().stripBedrockPrefix(rawName);
-            }
+        if (plugin.getConfigManager().hasBedrockPrefix(rawName)
+            && plugin.getConfigManager().isAutoStripPrefix()) {
+            name = plugin.getConfigManager().stripBedrockPrefix(rawName);
         }
 
         if (plugin.getWhitelistManager().isWhitelisted(name)) {
@@ -111,26 +98,12 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        UUID uuid = null;
-        String xuid = null;
-
-        FloodgateHandler fh = plugin.getFloodgateHandler();
-        if (type == PlayerType.BEDROCK && fh.isAvailable()) {
-            if (hasPrefix) {
-                var fPlayer = fh.getFloodgatePlayerByUsername(rawName);
-                if (fPlayer != null) {
-                    uuid = fPlayer.getJavaUniqueId();
-                    xuid = fPlayer.getXuid();
-                }
-            }
-        }
-
-        WhitelistEntry entry = new WhitelistEntry(name, type, uuid, xuid, sender.getName());
+        WhitelistEntry entry = new WhitelistEntry(name, PlayerType.JAVA, null, null, sender.getName());
         plugin.getWhitelistManager().add(entry);
 
-        plugin.getLogger().info(sender.getName() + " added " + name + " (" + type + ") to the whitelist");
+        plugin.getLogger().info(sender.getName() + " added " + name + " to the whitelist");
         sender.sendMessage(ChatColor.GREEN + "Added " + ChatColor.WHITE + name
-            + ChatColor.GREEN + " (" + type + ") to the whitelist.");
+            + ChatColor.GREEN + " to the whitelist.");
         return true;
     }
 
@@ -333,9 +306,6 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.addAll(plugin.getRequestManager().getAll().stream()
                 .map(PendingRequest::getName)
                 .collect(Collectors.toList()));
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
-            completions.add("java");
-            completions.add("bedrock");
         }
         return completions.stream()
             .filter(s -> s.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
