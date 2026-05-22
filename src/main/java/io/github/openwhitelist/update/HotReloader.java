@@ -6,7 +6,6 @@ import org.bukkit.plugin.InvalidDescriptionException;
 import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.SimplePluginManager;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -21,18 +20,26 @@ public class HotReloader {
 
     public static boolean reload(OpenWhitelistPlugin plugin, Path newJar, Path currentJar) {
         try {
-            PluginManager pm = Bukkit.getPluginManager();
-            pm.disablePlugin(plugin);
+            String pluginName = plugin.getName();
+
+            // Disable via PaperPluginManagerImpl which handles modern Paper 26.1
+            Object paperPm = getPaperPluginManager();
+            if (paperPm != null) {
+                callMethod(paperPm, "disablePlugin", new Class<?>[]{Plugin.class}, plugin);
+            } else {
+                Bukkit.getPluginManager().disablePlugin(plugin);
+            }
             plugin.getLogger().info("Plugin disabled for update");
 
             Files.deleteIfExists(currentJar);
             Files.move(newJar, currentJar, StandardCopyOption.REPLACE_EXISTING);
             plugin.getLogger().info("Jar replaced: " + currentJar.getFileName());
 
-            if (!unloadPlugin(plugin)) {
-                plugin.getLogger().warning("Could not fully unload plugin from provider storage. Update may fail.");
+            if (paperPm != null) {
+                unloadFromProviderStorage(paperPm, plugin, pluginName);
             }
 
+            PluginManager pm = Bukkit.getPluginManager();
             Plugin loaded = pm.loadPlugin(currentJar.toFile());
             if (loaded == null) {
                 plugin.getLogger().severe("Failed to load updated plugin jar");
@@ -49,53 +56,66 @@ public class HotReloader {
         }
     }
 
-    private static boolean unloadPlugin(Plugin plugin) {
-        boolean cleaned = false;
-
+    private static Object getPaperPluginManager() {
         try {
-            PluginManager pm = Bukkit.getPluginManager();
+            Class<?> craftServerClass = Class.forName("org.bukkit.craftbukkit.CraftServer");
+            Object craftServer = craftServerClass.cast(Bukkit.getServer());
+            Field paperPmField = craftServerClass.getDeclaredField("paperPluginManager");
+            paperPmField.setAccessible(true);
+            return paperPmField.get(craftServer);
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
-            // Remove from SimplePluginManager internal lists (Bukkit/Spigot compat)
-            if (pm instanceof SimplePluginManager spm) {
-                Field pluginsField = SimplePluginManager.class.getDeclaredField("plugins");
-                pluginsField.setAccessible(true);
-                List<?> plugins = (List<?>) pluginsField.get(spm);
-                cleaned |= plugins.remove(plugin);
+    private static void unloadFromProviderStorage(Object paperPm, Plugin plugin, String pluginName) {
+        try {
+            Field instanceManagerField = paperPm.getClass().getDeclaredField("instanceManager");
+            instanceManagerField.setAccessible(true);
+            Object instanceManager = instanceManagerField.get(paperPm);
 
-                Field lookupNamesField = SimplePluginManager.class.getDeclaredField("lookupNames");
-                lookupNamesField.setAccessible(true);
-                Map<?, ?> lookupNames = (Map<?, ?>) lookupNamesField.get(spm);
-                cleaned |= lookupNames.values().remove(plugin);
-            }
+            Field pluginsField = instanceManager.getClass().getDeclaredField("plugins");
+            pluginsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<Plugin> plugins = (List<Plugin>) pluginsField.get(instanceManager);
+            plugins.remove(plugin);
+            pluginsField.set(instanceManager, plugins);
 
-            // Paper modern plugin system: try PaperPluginManagerImpl#unloadPlugin
+            Field lookupNamesField = instanceManager.getClass().getDeclaredField("lookupNames");
+            lookupNamesField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Plugin> lookupNames = (Map<String, Plugin>) lookupNamesField.get(instanceManager);
+            lookupNames.values().remove(plugin);
+            lookupNamesField.set(instanceManager, lookupNames);
+        } catch (Exception e) {
+            // Fallback: try SimplePluginManager route
             try {
-                Class<?> paperManagerClass = Class.forName("io.papermc.paper.plugin.manager.PaperPluginManagerImpl");
-                if (paperManagerClass.isInstance(pm)) {
-                    try {
-                        Method unloadPlugin = paperManagerClass.getMethod("unloadPlugin", Plugin.class);
-                        unloadPlugin.invoke(pm, plugin);
-                        cleaned = true;
-                    } catch (NoSuchMethodException e) {
-                        // Try instanceManager field approach
-                        Field instanceManagerField = paperManagerClass.getDeclaredField("instanceManager");
-                        instanceManagerField.setAccessible(true);
-                        Object instanceManager = instanceManagerField.get(pm);
-                        try {
-                            Method unload = instanceManager.getClass().getMethod("unloadPlugin", Plugin.class);
-                            unload.invoke(instanceManager, plugin);
-                            cleaned = true;
-                        } catch (NoSuchMethodException ignored) {}
-                    }
+                PluginManager pm = Bukkit.getPluginManager();
+                Class<?> spmClass = Class.forName("org.bukkit.plugin.SimplePluginManager");
+                if (spmClass.isInstance(pm)) {
+                    Field pluginsField = spmClass.getDeclaredField("plugins");
+                    pluginsField.setAccessible(true);
+                    @SuppressWarnings("unchecked")
+                    List<Plugin> plugins = (List<Plugin>) pluginsField.get(pm);
+                    plugins.remove(plugin);
+
+                    Field lookupNamesField = spmClass.getDeclaredField("lookupNames");
+                    lookupNamesField.setAccessible(true);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Plugin> lookupNames = (Map<String, Plugin>) lookupNamesField.get(pm);
+                    lookupNames.values().remove(plugin);
                 }
             } catch (Exception ignored) {
-                // Paper classes not available (non-Paper server)
             }
-
-        } catch (Exception e) {
-            return cleaned;
         }
+    }
 
-        return cleaned;
+    private static Object callMethod(Object obj, String name, Class<?>[] paramTypes, Object... args) {
+        try {
+            Method m = obj.getClass().getMethod(name, paramTypes);
+            return m.invoke(obj, args);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
