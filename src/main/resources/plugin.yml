@@ -1,0 +1,40 @@
+name: OpenWhitelist
+version: ${version}
+main: io.github.openwhitelist.OpenWhitelistPlugin
+api-version: "1.21"
+softdepend: [Floodgate]
+authors: [direcato]
+description: Whitelist plugin with Java & Bedrock (Geyser/Floodgate) support
+
+commands:
+  openw:
+    description: OpenWhitelist main command
+    usage: /openw <add|remove|list|reload|update>
+    aliases: [owhitelist]
+    permission: openwhitelist.admin
+
+permissions:
+  openwhitelist.admin:
+    description: All OpenWhitelist permissions
+    default: op
+    children:
+      openwhitelist.add: true
+      openwhitelist.remove: true
+      openwhitelist.list: true
+      openwhitelist.reload: true
+      openwhitelist.update: true
+  openwhitelist.add:
+    description: Add players to the whitelist
+    default: op
+  openwhitelist.remove:
+    description: Remove players from the whitelist
+    default: op
+  openwhitelist.list:
+    description: View the whitelist
+    default: op
+  openwhitelist.reload:
+    description: Reload config and whitelist
+    default: op
+  openwhitelist.update:
+    description: Trigger auto-update
+    default: op

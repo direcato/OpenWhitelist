@@ -1,0 +1,26 @@
+# OpenWhitelist Configuration
+
+geyser:
+  # Prefix added to Bedrock player usernames by Floodgate
+  bedrock-prefix: "."
+  # Automatically strip the prefix when adding players via /openw add
+  auto-strip-prefix: true
+
+whitelist:
+  # Kick message shown to non-whitelisted players
+  kick-message: "&cYou are not whitelisted on this server."
+  # Enable whitelist (set to false to disable all checks)
+  enabled: true
+
+update:
+  # Enable auto-update checking
+  enabled: true
+  # URL to download the latest plugin jar
+  url: "https://api.modrinth.com/v2/project/openwhitelist/version"
+  # URL to fetch the expected SHA-256 hash (optional, leave empty to skip verification)
+  hash-url: ""
+  # How often to check for updates (in hours)
+  check-interval-hours: 24
+
+# Don't modify this
+config-version: 1
