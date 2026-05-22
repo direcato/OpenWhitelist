@@ -35,6 +35,6 @@ tasks {
         options.release.set(21)
     }
     jar {
-        archiveFileName.set("OpenWhitelist-${project.version}.jar")
+        archiveFileName.set("OpenWhitelist.jar")
     }
 }

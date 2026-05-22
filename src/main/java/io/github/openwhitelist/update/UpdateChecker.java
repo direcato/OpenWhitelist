@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import org.bukkit.scheduler.BukkitTask;
 
 public class UpdateChecker {
 
@@ -53,7 +52,7 @@ public class UpdateChecker {
         int interval = plugin.getConfigManager().getCheckIntervalHours();
         if (interval <= 0) interval = 24;
 
-        BukkitTask task = plugin.getServer().getScheduler().runTaskTimerAsynchronously(
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(
             plugin,
             () -> checkNow(null),
             20L * 60 * 60 * 2,

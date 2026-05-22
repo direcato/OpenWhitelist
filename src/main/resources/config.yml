@@ -14,9 +14,10 @@ whitelist:
 
 update:
   # Enable auto-update checking
-  enabled: true
+  enabled: false
   # URL to download the latest plugin jar
-  url: "https://api.modrinth.com/v2/project/openwhitelist/version"
+  # Example: https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar
+  url: ""
   # URL to fetch the expected SHA-256 hash (optional, leave empty to skip verification)
   hash-url: ""
   # How often to check for updates (in hours)
