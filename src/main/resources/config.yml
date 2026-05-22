@@ -15,11 +15,9 @@ whitelist:
 update:
   # Enable auto-update checking
   enabled: false
-  # URL to download the latest plugin jar
-  # Example: https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar
-  url: ""
-  # URL to fetch the expected SHA-256 hash (optional, leave empty to skip verification)
-  hash-url: ""
+  # GitHub repository for release lookups (e.g., "direcato/OpenWhitelist")
+  # The plugin fetches the latest release via the GitHub API
+  github-repo: "direcato/OpenWhitelist"
   # How often to check for updates (in hours)
   check-interval-hours: 24
 

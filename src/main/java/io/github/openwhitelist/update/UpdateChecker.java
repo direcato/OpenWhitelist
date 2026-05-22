@@ -17,13 +17,21 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UpdateChecker {
+
+    private static final Pattern TAG_PATTERN = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
+    private static final Pattern ASSET_PATTERN = Pattern.compile(
+        "\"name\"\\s*:\\s*\"OpenWhitelist\\.jar\".*?\"browser_download_url\"\\s*:\\s*\"([^\"]+)\"",
+        Pattern.DOTALL
+    );
 
     private final OpenWhitelistPlugin plugin;
     private final HttpClient httpClient;
     private Path pluginJarPath;
-    private String currentHash;
+    private String currentVersion;
 
     public UpdateChecker(OpenWhitelistPlugin plugin) {
         this.plugin = plugin;
@@ -35,10 +43,15 @@ public class UpdateChecker {
 
     public void start() {
         try {
+            currentVersion = plugin.getPluginMeta().getVersion();
+        } catch (Exception e) {
+            currentVersion = plugin.getDescription().getVersion();
+        }
+
+        try {
             java.net.URI jarUri = plugin.getClass().getProtectionDomain()
                 .getCodeSource().getLocation().toURI();
             pluginJarPath = Path.of(jarUri);
-            currentHash = computeHash(pluginJarPath);
         } catch (Exception e) {
             plugin.getLogger().warning("Could not determine plugin jar path: " + e.getMessage());
         }
@@ -61,62 +74,92 @@ public class UpdateChecker {
     }
 
     public void checkNow(Consumer<Boolean> callback) {
-        String url = plugin.getConfigManager().getUpdateUrl();
-        if (url == null || url.isEmpty()) {
-            plugin.getLogger().info("No update URL configured.");
+        String repo = plugin.getConfigManager().getGithubRepo();
+        if (repo == null || repo.isEmpty()) {
+            plugin.getLogger().info("No GitHub repo configured for update checks.");
             if (callback != null) callback.accept(false);
             return;
         }
 
         CompletableFuture.runAsync(() -> {
             try {
-                Path downloadDir = plugin.getDataFolder().toPath().resolve("update");
-                Files.createDirectories(downloadDir);
-                Path tempFile = downloadDir.resolve("OpenWhitelist-latest.jar");
+                String apiUrl = "https://api.github.com/repos/" + repo + "/releases/latest";
 
-                HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(30))
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(apiUrl))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Accept", "application/vnd.github.v3+json")
                     .GET()
                     .build();
 
-                HttpResponse<InputStream> response = httpClient.send(
-                    request, HttpResponse.BodyHandlers.ofInputStream()
+                HttpResponse<String> resp = httpClient.send(
+                    req, HttpResponse.BodyHandlers.ofString()
                 );
 
-                if (response.statusCode() != 200) {
-                    plugin.getLogger().warning("Update check failed: HTTP " + response.statusCode());
+                if (resp.statusCode() != 200) {
+                    plugin.getLogger().warning("GitHub API returned HTTP " + resp.statusCode());
                     if (callback != null) callback.accept(false);
                     return;
                 }
 
-                Files.copy(response.body(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+                String body = resp.body();
 
-                String hashUrl = plugin.getConfigManager().getHashUrl();
-                if (hashUrl != null && !hashUrl.isEmpty()) {
-                    String expectedHash = fetchHash(hashUrl);
-                    if (expectedHash != null) {
-                        String downloadedHash = computeHash(tempFile);
-                        if (!expectedHash.equalsIgnoreCase(downloadedHash)) {
-                            plugin.getLogger().warning("Update hash mismatch - rejecting update");
-                            Files.deleteIfExists(tempFile);
-                            if (callback != null) callback.accept(false);
-                            return;
-                        }
-                    }
+                Matcher tagMatcher = TAG_PATTERN.matcher(body);
+                if (!tagMatcher.find()) {
+                    plugin.getLogger().warning("Could not find tag_name in GitHub response.");
+                    if (callback != null) callback.accept(false);
+                    return;
+                }
+                String latestTag = tagMatcher.group(1);
+
+                if (!isNewerVersion(latestTag, currentVersion)) {
+                    plugin.getLogger().info("Already running latest version (" + currentVersion + ").");
+                    if (callback != null) callback.accept(false);
+                    return;
                 }
 
-                if (currentHash != null) {
-                    String newHash = computeHash(tempFile);
-                    if (newHash.equalsIgnoreCase(currentHash)) {
-                        plugin.getLogger().info("Already running the latest version.");
-                        Files.deleteIfExists(tempFile);
-                        if (callback != null) callback.accept(false);
-                        return;
-                    }
+                Matcher assetMatcher = ASSET_PATTERN.matcher(body);
+                if (!assetMatcher.find()) {
+                    plugin.getLogger().warning("Could not find download URL for OpenWhitelist.jar in release.");
+                    if (callback != null) callback.accept(false);
+                    return;
+                }
+                String downloadUrl = assetMatcher.group(1);
+
+                plugin.getLogger().info("New version found: " + latestTag
+                    + " (current: " + currentVersion + "). Downloading...");
+
+                Path downloadDir = plugin.getDataFolder().toPath().resolve("update");
+                Files.createDirectories(downloadDir);
+                Path tempFile = downloadDir.resolve("OpenWhitelist-" + latestTag + ".jar");
+
+                HttpRequest dlReq = HttpRequest.newBuilder()
+                    .uri(URI.create(downloadUrl))
+                    .timeout(Duration.ofSeconds(60))
+                    .GET()
+                    .build();
+
+                HttpResponse<InputStream> dlResp = httpClient.send(
+                    dlReq, HttpResponse.BodyHandlers.ofInputStream()
+                );
+
+                if (dlResp.statusCode() != 200) {
+                    plugin.getLogger().warning("Download failed: HTTP " + dlResp.statusCode());
+                    if (callback != null) callback.accept(false);
+                    return;
                 }
 
-                plugin.getLogger().info("Update downloaded. Performing hot reload...");
+                Files.copy(dlResp.body(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+                String newHash = computeHash(tempFile);
+                if (newHash != null && newHash.equals(currentHash())) {
+                    plugin.getLogger().info("Downloaded jar is identical to current. Skipping update.");
+                    Files.deleteIfExists(tempFile);
+                    if (callback != null) callback.accept(false);
+                    return;
+                }
+
+                plugin.getLogger().info("Update downloaded (" + latestTag + "). Hot-reloading...");
                 boolean reloaded = HotReloader.reload(plugin, tempFile, pluginJarPath);
                 if (callback != null) callback.accept(reloaded);
             } catch (Exception e) {
@@ -126,23 +169,32 @@ public class UpdateChecker {
         });
     }
 
-    private String fetchHash(String url) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(url))
-                .timeout(Duration.ofSeconds(10))
-                .GET()
-                .build();
-            HttpResponse<String> response = httpClient.send(
-                request, HttpResponse.BodyHandlers.ofString()
-            );
-            if (response.statusCode() == 200) {
-                return response.body().trim().split("\\s+")[0];
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to fetch hash: " + e.getMessage());
+    private boolean isNewerVersion(String tag, String current) {
+        String v1 = tag.replaceAll("^[vV]", "");
+        String v2 = current.replaceAll("^[vV]", "");
+        String[] parts1 = v1.split("\\.");
+        String[] parts2 = v2.split("\\.");
+        int len = Math.max(parts1.length, parts2.length);
+        for (int i = 0; i < len; i++) {
+            int n1 = i < parts1.length ? tryParseInt(parts1[i], 0) : 0;
+            int n2 = i < parts2.length ? tryParseInt(parts2[i], 0) : 0;
+            if (n1 > n2) return true;
+            if (n1 < n2) return false;
         }
-        return null;
+        return false;
+    }
+
+    private int tryParseInt(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return def;
+        }
+    }
+
+    private String currentHash() {
+        if (pluginJarPath == null) return null;
+        return computeHash(pluginJarPath);
     }
 
     private String computeHash(Path file) {

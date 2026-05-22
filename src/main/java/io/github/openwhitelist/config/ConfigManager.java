@@ -11,8 +11,7 @@ public class ConfigManager {
     private String kickMessage;
     private boolean whitelistEnabled;
     private boolean updateEnabled;
-    private String updateUrl;
-    private String hashUrl;
+    private String githubRepo;
     private int checkIntervalHours;
 
     public ConfigManager(OpenWhitelistPlugin plugin) {
@@ -28,9 +27,8 @@ public class ConfigManager {
         this.autoStripPrefix = config.getBoolean("geyser.auto-strip-prefix", true);
         this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted on this server.");
         this.whitelistEnabled = config.getBoolean("whitelist.enabled", true);
-        this.updateEnabled = config.getBoolean("update.enabled", true);
-        this.updateUrl = config.getString("update.url", "");
-        this.hashUrl = config.getString("update.hash-url", "");
+        this.updateEnabled = config.getBoolean("update.enabled", false);
+        this.githubRepo = config.getString("update.github-repo", "");
         this.checkIntervalHours = config.getInt("update.check-interval-hours", 24);
     }
 
@@ -54,12 +52,8 @@ public class ConfigManager {
         return updateEnabled;
     }
 
-    public String getUpdateUrl() {
-        return updateUrl;
-    }
-
-    public String getHashUrl() {
-        return hashUrl;
+    public String getGithubRepo() {
+        return githubRepo;
     }
 
     public int getCheckIntervalHours() {
