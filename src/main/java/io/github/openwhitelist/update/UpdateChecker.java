@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 public class UpdateChecker {
 
@@ -49,38 +48,26 @@ public class UpdateChecker {
         }
 
         if (plugin.getConfigManager().isUpdateEnabled()) {
-            scheduleCheck();
+            checkNow();
         }
     }
 
-    private void scheduleCheck() {
-        int interval = plugin.getConfigManager().getCheckIntervalHours();
-        if (interval <= 0) interval = 24;
-
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(
-            plugin,
-            () -> checkNow(null),
-            20L * 60 * 60 * 2,
-            20L * 60 * 60 * interval
-        );
-    }
-
-    public void checkNow(Consumer<Boolean> callback) {
+    public CompletableFuture<Void> checkNow() {
         String url = plugin.getConfigManager().getUpdateUrl();
         String repo = plugin.getConfigManager().getGithubRepo();
 
         if (url != null && !url.isEmpty()) {
-            checkFromUrl(url, callback);
+            return checkFromUrl(url);
         } else if (repo != null && !repo.isEmpty()) {
-            checkFromGithubApi(repo, callback);
+            return checkFromGithubApi(repo);
         } else {
             plugin.getLogger().info("No update URL or GitHub repo configured.");
-            if (callback != null) callback.accept(false);
+            return CompletableFuture.completedFuture(null);
         }
     }
 
-    private void checkFromUrl(String url, Consumer<Boolean> callback) {
-        CompletableFuture.runAsync(() -> {
+    private CompletableFuture<Void> checkFromUrl(String url) {
+        return CompletableFuture.runAsync(() -> {
             try {
                 Path downloadDir = plugin.getDataFolder().toPath().resolve("update");
                 Files.createDirectories(downloadDir);
@@ -98,7 +85,6 @@ public class UpdateChecker {
 
                 if (response.statusCode() != 200) {
                     plugin.getLogger().warning("Update download failed: HTTP " + response.statusCode());
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
@@ -109,22 +95,18 @@ public class UpdateChecker {
                 if (newHash != null && newHash.equals(currentHash)) {
                     plugin.getLogger().info("Already running the latest version.");
                     Files.deleteIfExists(tempFile);
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
-                plugin.getLogger().info("Update downloaded. Hot-reloading...");
-                boolean reloaded = HotReloader.reload(plugin, tempFile, pluginJarPath);
-                if (callback != null) callback.accept(reloaded);
+                applyUpdate(tempFile);
             } catch (Exception e) {
-                plugin.getLogger().severe("Update failed: " + e.getMessage());
-                if (callback != null) callback.accept(false);
+                plugin.getLogger().severe("Update check failed: " + e.getMessage());
             }
         });
     }
 
-    private void checkFromGithubApi(String repo, Consumer<Boolean> callback) {
-        CompletableFuture.runAsync(() -> {
+    private CompletableFuture<Void> checkFromGithubApi(String repo) {
+        return CompletableFuture.runAsync(() -> {
             try {
                 String apiUrl = "https://api.github.com/repos/" + repo + "/releases/latest";
 
@@ -142,7 +124,6 @@ public class UpdateChecker {
 
                 if (resp.statusCode() != 200) {
                     plugin.getLogger().warning("GitHub API returned HTTP " + resp.statusCode());
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
@@ -150,20 +131,17 @@ public class UpdateChecker {
                 String latestTag = extractJsonString(body, "tag_name");
                 if (latestTag == null) {
                     plugin.getLogger().warning("Could not find tag_name in GitHub response.");
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
                 if (!isNewerVersion(latestTag, currentVersion)) {
                     plugin.getLogger().info("Already running latest version (" + currentVersion + ").");
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
                 String downloadUrl = findAssetUrl(body, "OpenWhitelist.jar");
                 if (downloadUrl == null) {
                     plugin.getLogger().warning("Could not find download URL for OpenWhitelist.jar in release.");
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
@@ -186,7 +164,6 @@ public class UpdateChecker {
 
                 if (dlResp.statusCode() != 200) {
                     plugin.getLogger().warning("Download failed: HTTP " + dlResp.statusCode());
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
@@ -196,18 +173,30 @@ public class UpdateChecker {
                 if (newHash != null && newHash.equals(currentHash())) {
                     plugin.getLogger().info("Downloaded jar is identical to current. Skipping update.");
                     Files.deleteIfExists(tempFile);
-                    if (callback != null) callback.accept(false);
                     return;
                 }
 
-                plugin.getLogger().info("Update downloaded (" + latestTag + "). Hot-reloading...");
-                boolean reloaded = HotReloader.reload(plugin, tempFile, pluginJarPath);
-                if (callback != null) callback.accept(reloaded);
+                applyUpdate(tempFile);
             } catch (Exception e) {
                 plugin.getLogger().severe("Update check failed: " + e.getMessage());
-                if (callback != null) callback.accept(false);
             }
         });
+    }
+
+    private void applyUpdate(Path downloadedJar) throws IOException {
+        if (pluginJarPath == null) {
+            plugin.getLogger().info("Update downloaded to " + downloadedJar
+                + ". Restart server to apply.");
+            return;
+        }
+
+        try {
+            Files.move(downloadedJar, pluginJarPath, StandardCopyOption.REPLACE_EXISTING);
+            plugin.getLogger().info("Update downloaded. Restart server to apply changes.");
+        } catch (IOException e) {
+            plugin.getLogger().info("Update downloaded to " + downloadedJar
+                + ". Restart server to apply.");
+        }
     }
 
     private boolean isNewerVersion(String tag, String current) {

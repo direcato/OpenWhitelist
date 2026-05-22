@@ -13,14 +13,12 @@ whitelist:
   enabled: true
 
 update:
-  # Enable auto-update checking
+  # Check for updates on startup and via /openw update
   enabled: true
-  # Direct download URL for the plugin jar (auto-update uses this)
+  # Direct download URL for the plugin jar
   url: "https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar"
   # GitHub repository for API-based version checks (optional)
   github-repo: "direcato/OpenWhitelist"
-  # How often to check for updates (in hours)
-  check-interval-hours: 24
 
 request:
   # How long a kick request is valid (in seconds)

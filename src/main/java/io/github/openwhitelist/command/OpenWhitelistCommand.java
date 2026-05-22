@@ -195,11 +195,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
 
         plugin.getLogger().info(sender.getName() + " triggered update check");
         sender.sendMessage(ChatColor.YELLOW + "Checking for updates...");
-        plugin.getUpdateChecker().checkNow(result ->
-            sender.sendMessage(result
-                ? ChatColor.GREEN + "Update downloaded. Reloading plugin..."
-                : ChatColor.RED + "No update available or check failed.")
-        );
+        plugin.getUpdateChecker().checkNow();
+        sender.sendMessage(ChatColor.GREEN + "Update check started. Check console for results.");
         return true;
     }
 

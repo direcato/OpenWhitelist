@@ -13,7 +13,6 @@ public class ConfigManager {
     private boolean updateEnabled;
     private String updateUrl;
     private String githubRepo;
-    private int checkIntervalHours;
     private int requestTimeoutSeconds;
 
     public ConfigManager(OpenWhitelistPlugin plugin) {
@@ -32,7 +31,6 @@ public class ConfigManager {
         this.updateEnabled = config.getBoolean("update.enabled", true);
         this.updateUrl = config.getString("update.url", "");
         this.githubRepo = config.getString("update.github-repo", "");
-        this.checkIntervalHours = config.getInt("update.check-interval-hours", 24);
         this.requestTimeoutSeconds = config.getInt("request.timeout-seconds", 600);
     }
 
@@ -62,10 +60,6 @@ public class ConfigManager {
 
     public String getGithubRepo() {
         return githubRepo;
-    }
-
-    public int getCheckIntervalHours() {
-        return checkIntervalHours;
     }
 
     public int getRequestTimeoutSeconds() {
