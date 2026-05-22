@@ -1,6 +1,7 @@
 # OpenWhitelist
 
 Minecraft whitelist plugin for Paper 1.21.4+. Supports Java and Bedrock (Geyser/Floodgate).
+This Plugins is not version locked so It works on All server version (Some old version might not work due to not testing)
 
 ## Install
 
