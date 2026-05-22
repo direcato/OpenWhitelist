@@ -3,12 +3,6 @@ name: Release
 on:
   push:
     branches: [main]
-    tags: ['v*']
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
-      - 'LICENSE'
-      - '.gitattributes'
 
 jobs:
   build:
@@ -27,26 +21,42 @@ jobs:
 
       - run: chmod +x gradlew && ./gradlew build
 
-      - name: Tag release — proper release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build/libs/OpenWhitelist.jar
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+      - name: Compute jar hash
+        id: hash
+        run: echo "sha256=$(sha256sum build/libs/OpenWhitelist.jar | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
-      - name: Push to main — continuous build (pre-release)
-        if: github.ref == 'refs/heads/main'
+      - name: Check if release needs update
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ID=$(gh release view latest --json id -q '.id' 2>/dev/null || echo "")
+          if [ -z "$ID" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            gh release download latest -p "OpenWhitelist.jar" -o /tmp/current.jar 2>/dev/null || true
+            if [ -f /tmp/current.jar ]; then
+              OLD=$(sha256sum /tmp/current.jar | cut -d' ' -f1)
+              if [ "$OLD" = "${{ steps.hash.outputs.sha256 }}" ]; then
+                echo "changed=false" >> "$GITHUB_OUTPUT"
+              else
+                echo "changed=true" >> "$GITHUB_OUTPUT"
+              fi
+            else
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: Upload release
+        if: steps.check.outputs.changed == 'true'
         uses: ncipollo/release-action@v1
         with:
           tag: latest
-          name: "Continuous Build"
+          name: "OpenWhitelist"
           artifacts: build/libs/OpenWhitelist.jar
-          artifactContentType: application/java-application
-          body: "Auto-built from commit ${{ github.sha }}"
+          artifactContentType: application/java-archive
+          body: "Download OpenWhitelist.jar into your server's plugins/ folder and restart."
           allowUpdates: true
           removeArtifacts: true
           replacesArtifacts: true
-          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
