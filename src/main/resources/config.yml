@@ -8,7 +8,7 @@ geyser:
 
 whitelist:
   # Kick message shown to non-whitelisted players
-  kick-message: "&cYou are not whitelisted.\n&eRequest access with &6/openw accept <name>&e or contact an admin."
+  kick-message: "&c[You are not whitelisted] - Please contact the server admin to accept your Join request with &6/openw accept [YourName]"
   # Enable whitelist (set to false to disable all checks)
   enabled: true
 
