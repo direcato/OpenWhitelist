@@ -9,7 +9,7 @@ description: Whitelist plugin with Java & Bedrock (Geyser/Floodgate) support
 commands:
   openw:
     description: OpenWhitelist main command
-    usage: /openw <add|remove|list|reload|update>
+    usage: /openw <add|remove|list|reload|update|on|off>
     aliases: [owhitelist]
     permission: openwhitelist.admin
 
@@ -23,6 +23,8 @@ permissions:
       openwhitelist.list: true
       openwhitelist.reload: true
       openwhitelist.update: true
+      openwhitelist.on: true
+      openwhitelist.off: true
   openwhitelist.add:
     description: Add players to the whitelist
     default: op
@@ -37,4 +39,10 @@ permissions:
     default: op
   openwhitelist.update:
     description: Trigger auto-update
+    default: op
+  openwhitelist.on:
+    description: Enable the whitelist
+    default: op
+  openwhitelist.off:
+    description: Disable the whitelist
     default: op

@@ -49,6 +49,10 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleReload(sender);
             case "update":
                 return handleUpdate(sender);
+            case "on":
+                return handleOn(sender);
+            case "off":
+                return handleOff(sender);
             default:
                 sendUsage(sender, label);
                 return true;
@@ -62,6 +66,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " list [page]" + ChatColor.GRAY + " - List whitelisted players");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " reload" + ChatColor.GRAY + " - Reload config & whitelist");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " update" + ChatColor.GRAY + " - Check for updates");
+        sender.sendMessage(ChatColor.YELLOW + "/" + label + " on" + ChatColor.GRAY + " - Enable the whitelist");
+        sender.sendMessage(ChatColor.YELLOW + "/" + label + " off" + ChatColor.GRAY + " - Disable the whitelist");
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
@@ -214,6 +220,30 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleOn(CommandSender sender) {
+        if (!sender.hasPermission("openwhitelist.on")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            return true;
+        }
+        plugin.getConfigManager().setWhitelistEnabled(true);
+        plugin.getConfigManager().save();
+        sender.sendMessage(ChatColor.GREEN + "Whitelist enabled.");
+        plugin.getLogger().info("Whitelist enabled by " + sender.getName());
+        return true;
+    }
+
+    private boolean handleOff(CommandSender sender) {
+        if (!sender.hasPermission("openwhitelist.off")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            return true;
+        }
+        plugin.getConfigManager().setWhitelistEnabled(false);
+        plugin.getConfigManager().save();
+        sender.sendMessage(ChatColor.GREEN + "Whitelist disabled.");
+        plugin.getLogger().info("Whitelist disabled by " + sender.getName());
+        return true;
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -223,6 +253,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("list");
             completions.add("reload");
             completions.add("update");
+            completions.add("on");
+            completions.add("off");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
             completions.addAll(plugin.getWhitelistManager().getAllEntries().stream()
                 .map(WhitelistEntry::getName)

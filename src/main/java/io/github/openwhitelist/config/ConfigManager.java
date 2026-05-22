@@ -60,6 +60,15 @@ public class ConfigManager {
         return checkIntervalHours;
     }
 
+    public void setWhitelistEnabled(boolean enabled) {
+        this.whitelistEnabled = enabled;
+    }
+
+    public void save() {
+        plugin.getConfig().set("whitelist.enabled", whitelistEnabled);
+        plugin.saveConfig();
+    }
+
     public String stripBedrockPrefix(String name) {
         if (name != null && bedrockPrefix != null && !bedrockPrefix.isEmpty()
             && name.startsWith(bedrockPrefix)) {

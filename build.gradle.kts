@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "io.github.openwhitelist"
-version = "1.0.0"
+version = "1.5.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
