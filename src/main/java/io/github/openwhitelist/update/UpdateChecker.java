@@ -22,12 +22,6 @@ import java.util.regex.Pattern;
 
 public class UpdateChecker {
 
-    private static final Pattern TAG_PATTERN = Pattern.compile("\"tag_name\"\\s*:\\s*\"([^\"]+)\"");
-    private static final Pattern ASSET_PATTERN = Pattern.compile(
-        "\"name\"\\s*:\\s*\"OpenWhitelist\\.jar\".*?\"browser_download_url\"\\s*:\\s*\"([^\"]+)\"",
-        Pattern.DOTALL
-    );
-
     private final OpenWhitelistPlugin plugin;
     private final HttpClient httpClient;
     private Path pluginJarPath;
@@ -89,6 +83,7 @@ public class UpdateChecker {
                     .uri(URI.create(apiUrl))
                     .timeout(Duration.ofSeconds(15))
                     .header("Accept", "application/vnd.github.v3+json")
+                    .header("User-Agent", "OpenWhitelist/" + currentVersion)
                     .GET()
                     .build();
 
@@ -104,13 +99,12 @@ public class UpdateChecker {
 
                 String body = resp.body();
 
-                Matcher tagMatcher = TAG_PATTERN.matcher(body);
-                if (!tagMatcher.find()) {
+                String latestTag = extractJsonString(body, "tag_name");
+                if (latestTag == null) {
                     plugin.getLogger().warning("Could not find tag_name in GitHub response.");
                     if (callback != null) callback.accept(false);
                     return;
                 }
-                String latestTag = tagMatcher.group(1);
 
                 if (!isNewerVersion(latestTag, currentVersion)) {
                     plugin.getLogger().info("Already running latest version (" + currentVersion + ").");
@@ -118,13 +112,12 @@ public class UpdateChecker {
                     return;
                 }
 
-                Matcher assetMatcher = ASSET_PATTERN.matcher(body);
-                if (!assetMatcher.find()) {
+                String downloadUrl = findAssetUrl(body, "OpenWhitelist.jar");
+                if (downloadUrl == null) {
                     plugin.getLogger().warning("Could not find download URL for OpenWhitelist.jar in release.");
                     if (callback != null) callback.accept(false);
                     return;
                 }
-                String downloadUrl = assetMatcher.group(1);
 
                 plugin.getLogger().info("New version found: " + latestTag
                     + " (current: " + currentVersion + "). Downloading...");
@@ -205,5 +198,42 @@ public class UpdateChecker {
         } catch (NoSuchAlgorithmException | IOException e) {
             return null;
         }
+    }
+
+    private String extractJsonString(String json, String key) {
+        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
+        return m.find() ? m.group(1) : null;
+    }
+
+    private String findAssetUrl(String json, String assetName) {
+        int assetsIdx = json.indexOf("\"assets\"");
+        if (assetsIdx < 0) return null;
+        String afterAssets = json.substring(assetsIdx);
+
+        int bracketIdx = afterAssets.indexOf('[');
+        if (bracketIdx < 0) return null;
+        afterAssets = afterAssets.substring(bracketIdx);
+
+        int depth = 0;
+        int objStart = -1;
+        for (int i = 0; i < afterAssets.length(); i++) {
+            char c = afterAssets.charAt(i);
+            if (c == '{') {
+                if (depth == 0) objStart = i;
+                depth++;
+            } else if (c == '}') {
+                depth--;
+                if (depth == 0 && objStart >= 0) {
+                    String asset = afterAssets.substring(objStart, i + 1);
+                    if (asset.contains("\"name\"")
+                        && extractJsonString(asset, "name") != null
+                        && extractJsonString(asset, "name").equals(assetName)) {
+                        return extractJsonString(asset, "browser_download_url");
+                    }
+                    objStart = -1;
+                }
+            }
+        }
+        return null;
     }
 }
