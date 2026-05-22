@@ -2,6 +2,7 @@ package io.github.openwhitelist.listener;
 
 import io.github.openwhitelist.OpenWhitelistPlugin;
 import io.github.openwhitelist.geyser.FloodgateHandler;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -44,6 +45,7 @@ public class PlayerLoginListener implements Listener {
                     plugin.getRequestManager().add(name, uuid);
                     plugin.getLogger().warning("[OpenWhitelist] Player " + name
                         + " was denied - not whitelisted. Pending request created.");
+                    broadcastRequest(name);
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                         ChatColor.translateAlternateColorCodes('&',
                             plugin.getConfigManager().getKickMessage()));
@@ -58,11 +60,20 @@ public class PlayerLoginListener implements Listener {
                 plugin.getRequestManager().add(name, uuid);
                 plugin.getLogger().warning("[OpenWhitelist] Player " + name
                     + " was denied - not whitelisted. Pending request created.");
+                broadcastRequest(name);
                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                     ChatColor.translateAlternateColorCodes('&',
                         plugin.getConfigManager().getKickMessage()));
             }
         }
+    }
+
+    private void broadcastRequest(String name) {
+        plugin.getServer().getScheduler().runTask(plugin, () ->
+            Bukkit.broadcastMessage(ChatColor.AQUA + "[OpenWhitelist] " + ChatColor.WHITE + name
+                + ChatColor.AQUA + " requested whitelist access — "
+                + ChatColor.YELLOW + "/openw accept " + name)
+        );
     }
 
     private void autoWhitelistBedrock(UUID strippedUuid, String xuid, String bedrockName) {

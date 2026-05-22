@@ -11,7 +11,6 @@ commands:
     description: OpenWhitelist main command
     usage: /openw <add|remove|list|reload|update|on|off|requests|accept|deny>
     aliases: [owhitelist]
-    permission: openwhitelist.admin
 
 permissions:
   openwhitelist.admin:
@@ -50,7 +49,7 @@ permissions:
     default: op
   openwhitelist.requests:
     description: View pending whitelist requests
-    default: op
+    default: true
   openwhitelist.accept:
     description: Accept a whitelist request
-    default: op
+    default: true

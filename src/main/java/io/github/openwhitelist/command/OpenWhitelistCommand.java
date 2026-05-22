@@ -5,6 +5,7 @@ import io.github.openwhitelist.request.PendingRequest;
 import io.github.openwhitelist.whitelist.WhitelistEntry;
 import io.github.openwhitelist.whitelist.WhitelistEntry.PlayerType;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -279,6 +280,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         plugin.getLogger().info(sender.getName() + " accepted " + name + "'s whitelist request");
         sender.sendMessage(ChatColor.GREEN + "Accepted " + ChatColor.WHITE + name
             + ChatColor.GREEN + "'s request. They are now whitelisted.");
+        Bukkit.broadcastMessage(ChatColor.AQUA + "[OpenWhitelist] " + ChatColor.WHITE + name
+            + ChatColor.AQUA + " was accepted by " + ChatColor.WHITE + sender.getName());
         return true;
     }
 
