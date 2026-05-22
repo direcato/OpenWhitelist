@@ -121,6 +121,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         WhitelistEntry entry = new WhitelistEntry(name, type, uuid, xuid, sender.getName());
         plugin.getWhitelistManager().add(entry);
 
+        plugin.getLogger().info(sender.getName() + " added " + name + " (" + type + ") to the whitelist");
         sender.sendMessage(ChatColor.GREEN + "Added " + ChatColor.WHITE + name
             + ChatColor.GREEN + " (" + type + ") to the whitelist.");
         return true;
@@ -138,6 +139,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
 
         String name = args[1];
         if (plugin.getWhitelistManager().remove(name)) {
+            plugin.getLogger().info(sender.getName() + " removed " + name + " from the whitelist");
             sender.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.WHITE + name
                 + ChatColor.GREEN + " from the whitelist.");
         } else {
@@ -211,6 +213,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        plugin.getLogger().info(sender.getName() + " triggered update check");
         sender.sendMessage(ChatColor.YELLOW + "Checking for updates...");
         plugin.getUpdateChecker().checkNow(result ->
             sender.sendMessage(result
@@ -227,8 +230,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         }
         plugin.getConfigManager().setWhitelistEnabled(true);
         plugin.getConfigManager().save();
-        sender.sendMessage(ChatColor.GREEN + "Whitelist enabled.");
         plugin.getLogger().info("Whitelist enabled by " + sender.getName());
+        sender.sendMessage(ChatColor.GREEN + "Whitelist enabled.");
         return true;
     }
 
@@ -239,8 +242,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         }
         plugin.getConfigManager().setWhitelistEnabled(false);
         plugin.getConfigManager().save();
-        sender.sendMessage(ChatColor.GREEN + "Whitelist disabled.");
         plugin.getLogger().info("Whitelist disabled by " + sender.getName());
+        sender.sendMessage(ChatColor.GREEN + "Whitelist disabled.");
         return true;
     }
 
