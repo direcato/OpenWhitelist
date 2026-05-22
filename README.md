@@ -24,3 +24,5 @@ Minecraft whitelist plugin for Paper 1.21.4+. Supports Java and Bedrock (Geyser/
 - **Any player** can accept requests and view the pending list (no op needed)
 - Denied players trigger a broadcast: `[OpenWhitelist] PlayerX requested whitelist access — /openw accept PlayerX`
 - Bedrock players are detected automatically via Floodgate on join
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
