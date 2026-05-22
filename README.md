@@ -18,7 +18,6 @@ Minecraft whitelist plugin for Paper 1.21.4+. Supports Java and Bedrock (Geyser/
 /openw reload          - reload config and whitelist
 /openw on              - enable whitelist
 /openw off             - disable whitelist
-/openw update          - download and apply latest version
 ```
 
 - **Any player** can accept requests and view the pending list (no op needed)

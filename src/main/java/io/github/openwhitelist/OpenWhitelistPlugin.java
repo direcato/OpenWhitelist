@@ -5,7 +5,6 @@ import io.github.openwhitelist.config.ConfigManager;
 import io.github.openwhitelist.geyser.FloodgateHandler;
 import io.github.openwhitelist.listener.PlayerLoginListener;
 import io.github.openwhitelist.request.RequestManager;
-import io.github.openwhitelist.update.UpdateChecker;
 import io.github.openwhitelist.whitelist.WhitelistManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,7 +13,6 @@ public class OpenWhitelistPlugin extends JavaPlugin {
     private ConfigManager configManager;
     private WhitelistManager whitelistManager;
     private FloodgateHandler floodgateHandler;
-    private UpdateChecker updateChecker;
     private RequestManager requestManager;
 
     @Override
@@ -23,7 +21,6 @@ public class OpenWhitelistPlugin extends JavaPlugin {
         this.configManager = new ConfigManager(this);
         this.whitelistManager = new WhitelistManager(this);
         this.floodgateHandler = new FloodgateHandler(this);
-        this.updateChecker = new UpdateChecker(this);
         this.requestManager = new RequestManager();
 
         whitelistManager.load();
@@ -44,8 +41,6 @@ public class OpenWhitelistPlugin extends JavaPlugin {
         } else {
             getLogger().info("Floodgate not found - Java-only mode");
         }
-
-        updateChecker.start();
 
         getLogger().info("OpenWhitelist v" + getDescription().getVersion() + " enabled");
     }
@@ -68,10 +63,6 @@ public class OpenWhitelistPlugin extends JavaPlugin {
 
     public FloodgateHandler getFloodgateHandler() {
         return floodgateHandler;
-    }
-
-    public UpdateChecker getUpdateChecker() {
-        return updateChecker;
     }
 
     public RequestManager getRequestManager() {

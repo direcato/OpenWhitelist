@@ -12,14 +12,6 @@ whitelist:
   # Enable whitelist (set to false to disable all checks)
   enabled: true
 
-update:
-  # Check for updates on startup and via /openw update
-  enabled: true
-  # Direct download URL for the plugin jar
-  url: "https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar"
-  # GitHub repository for API-based version checks (optional)
-  github-repo: "direcato/OpenWhitelist"
-
 request:
   # How long a kick request is valid (in seconds)
   timeout-seconds: 600

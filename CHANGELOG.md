@@ -6,9 +6,9 @@
 - Broadcast alerts when a player is denied (`[OpenWhitelist] PlayerX requested whitelist access — /openw accept PlayerX`)
 - Broadcast alerts when a request is accepted
 - Removed `[java|bedrock]` type from `/openw add` — type is auto-detected via Floodgate on join
-- Removed hot-reload — updates download on startup/command, apply on restart
+- Removed `/openw update` command, auto-update, and UpdateChecker entirely
 - Single release on GitHub — only updates when the jar actually changes
-- Simplified config (removed `check-interval-hours`)
+- Simplified config (removed `update` section and `check-interval-hours`)
 
 ## 1.5.2
 - Fixed hot-reload on Paper 26.1+ (provider storage reflection)

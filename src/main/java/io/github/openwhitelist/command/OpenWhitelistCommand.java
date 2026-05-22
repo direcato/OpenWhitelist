@@ -47,8 +47,6 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleList(sender, args);
             case "reload":
                 return handleReload(sender);
-            case "update":
-                return handleUpdate(sender);
             case "on":
                 return handleOn(sender);
             case "off":
@@ -69,7 +67,6 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " remove <name>" + ChatColor.GRAY + " - Remove a player");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " list [page]" + ChatColor.GRAY + " - List whitelisted players");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " reload" + ChatColor.GRAY + " - Reload config & whitelist");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " update" + ChatColor.GRAY + " - Check for updates");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " on" + ChatColor.GRAY + " - Enable the whitelist");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " off" + ChatColor.GRAY + " - Disable the whitelist");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " requests" + ChatColor.GRAY + " - View pending requests");
@@ -183,24 +180,6 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private boolean handleUpdate(CommandSender sender) {
-        if (!sender.hasPermission("openwhitelist.update")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
-            return true;
-        }
-
-        if (!plugin.getConfigManager().isUpdateEnabled()) {
-            sender.sendMessage(ChatColor.RED + "Auto-update is disabled in config.");
-            return true;
-        }
-
-        plugin.getLogger().info(sender.getName() + " triggered update check");
-        sender.sendMessage(ChatColor.YELLOW + "Checking for updates...");
-        plugin.getUpdateChecker().checkNow();
-        sender.sendMessage(ChatColor.GREEN + "Update check started. Check console for results.");
-        return true;
-    }
-
     private boolean handleOn(CommandSender sender) {
         if (!sender.hasPermission("openwhitelist.on")) {
             sender.sendMessage(ChatColor.RED + "You don't have permission.");
@@ -293,7 +272,6 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("remove");
             completions.add("list");
             completions.add("reload");
-            completions.add("update");
             completions.add("on");
             completions.add("off");
             completions.add("requests");
