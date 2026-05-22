@@ -17,8 +17,6 @@ import java.time.Duration;
 import java.util.HexFormat;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class UpdateChecker {
 
@@ -68,13 +66,64 @@ public class UpdateChecker {
     }
 
     public void checkNow(Consumer<Boolean> callback) {
+        String url = plugin.getConfigManager().getUpdateUrl();
         String repo = plugin.getConfigManager().getGithubRepo();
-        if (repo == null || repo.isEmpty()) {
-            plugin.getLogger().info("No GitHub repo configured for update checks.");
-            if (callback != null) callback.accept(false);
-            return;
-        }
 
+        if (url != null && !url.isEmpty()) {
+            checkFromUrl(url, callback);
+        } else if (repo != null && !repo.isEmpty()) {
+            checkFromGithubApi(repo, callback);
+        } else {
+            plugin.getLogger().info("No update URL or GitHub repo configured.");
+            if (callback != null) callback.accept(false);
+        }
+    }
+
+    private void checkFromUrl(String url, Consumer<Boolean> callback) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Path downloadDir = plugin.getDataFolder().toPath().resolve("update");
+                Files.createDirectories(downloadDir);
+                Path tempFile = downloadDir.resolve("OpenWhitelist-latest.jar");
+
+                HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(Duration.ofSeconds(60))
+                    .GET()
+                    .build();
+
+                HttpResponse<InputStream> response = httpClient.send(
+                    request, HttpResponse.BodyHandlers.ofInputStream()
+                );
+
+                if (response.statusCode() != 200) {
+                    plugin.getLogger().warning("Update download failed: HTTP " + response.statusCode());
+                    if (callback != null) callback.accept(false);
+                    return;
+                }
+
+                Files.copy(response.body(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+
+                String newHash = computeHash(tempFile);
+                String currentHash = currentHash();
+                if (newHash != null && newHash.equals(currentHash)) {
+                    plugin.getLogger().info("Already running the latest version.");
+                    Files.deleteIfExists(tempFile);
+                    if (callback != null) callback.accept(false);
+                    return;
+                }
+
+                plugin.getLogger().info("Update downloaded. Hot-reloading...");
+                boolean reloaded = HotReloader.reload(plugin, tempFile, pluginJarPath);
+                if (callback != null) callback.accept(reloaded);
+            } catch (Exception e) {
+                plugin.getLogger().severe("Update failed: " + e.getMessage());
+                if (callback != null) callback.accept(false);
+            }
+        });
+    }
+
+    private void checkFromGithubApi(String repo, Consumer<Boolean> callback) {
         CompletableFuture.runAsync(() -> {
             try {
                 String apiUrl = "https://api.github.com/repos/" + repo + "/releases/latest";
@@ -98,7 +147,6 @@ public class UpdateChecker {
                 }
 
                 String body = resp.body();
-
                 String latestTag = extractJsonString(body, "tag_name");
                 if (latestTag == null) {
                     plugin.getLogger().warning("Could not find tag_name in GitHub response.");
@@ -201,7 +249,9 @@ public class UpdateChecker {
     }
 
     private String extractJsonString(String json, String key) {
-        Matcher m = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]+)\"").matcher(json);
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(
+            "\"" + key + "\"\\s*:\\s*\"([^\"]+)\""
+        ).matcher(json);
         return m.find() ? m.group(1) : null;
     }
 
@@ -225,9 +275,8 @@ public class UpdateChecker {
                 depth--;
                 if (depth == 0 && objStart >= 0) {
                     String asset = afterAssets.substring(objStart, i + 1);
-                    if (asset.contains("\"name\"")
-                        && extractJsonString(asset, "name") != null
-                        && extractJsonString(asset, "name").equals(assetName)) {
+                    String name = extractJsonString(asset, "name");
+                    if (name != null && name.equals(assetName)) {
                         return extractJsonString(asset, "browser_download_url");
                     }
                     objStart = -1;

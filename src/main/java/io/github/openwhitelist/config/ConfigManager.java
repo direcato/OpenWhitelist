@@ -11,6 +11,7 @@ public class ConfigManager {
     private String kickMessage;
     private boolean whitelistEnabled;
     private boolean updateEnabled;
+    private String updateUrl;
     private String githubRepo;
     private int checkIntervalHours;
 
@@ -28,6 +29,7 @@ public class ConfigManager {
         this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted on this server.");
         this.whitelistEnabled = config.getBoolean("whitelist.enabled", true);
         this.updateEnabled = config.getBoolean("update.enabled", false);
+        this.updateUrl = config.getString("update.url", "");
         this.githubRepo = config.getString("update.github-repo", "");
         this.checkIntervalHours = config.getInt("update.check-interval-hours", 24);
     }
@@ -50,6 +52,10 @@ public class ConfigManager {
 
     public boolean isUpdateEnabled() {
         return updateEnabled;
+    }
+
+    public String getUpdateUrl() {
+        return updateUrl;
     }
 
     public String getGithubRepo() {

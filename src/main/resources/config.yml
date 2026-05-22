@@ -15,8 +15,10 @@ whitelist:
 update:
   # Enable auto-update checking
   enabled: false
-  # GitHub repository for release lookups (e.g., "direcato/OpenWhitelist")
-  # The plugin fetches the latest release via the GitHub API
+  # Direct download URL for the plugin jar (auto-update uses this)
+  # The "latest" release is auto-built on every push to main
+  url: "https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar"
+  # GitHub repository for API-based version checks (optional)
   github-repo: "direcato/OpenWhitelist"
   # How often to check for updates (in hours)
   check-interval-hours: 24
