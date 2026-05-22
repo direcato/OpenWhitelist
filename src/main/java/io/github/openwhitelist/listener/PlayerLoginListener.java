@@ -3,7 +3,6 @@ package io.github.openwhitelist.listener;
 import io.github.openwhitelist.OpenWhitelistPlugin;
 import io.github.openwhitelist.geyser.FloodgateHandler;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -42,6 +41,8 @@ public class PlayerLoginListener implements Listener {
                     || plugin.getWhitelistManager().isWhitelisted(bedrockName);
 
                 if (!whitelisted) {
+                    plugin.getLogger().warning("[OpenWhitelist] Player " + name
+                        + " was denied - not whitelisted");
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                         ChatColor.translateAlternateColorCodes('&',
                             plugin.getConfigManager().getKickMessage()));
@@ -53,6 +54,8 @@ public class PlayerLoginListener implements Listener {
         } else {
             if (!plugin.getWhitelistManager().isWhitelisted(name)
                 && !plugin.getWhitelistManager().isWhitelisted(uuid)) {
+                plugin.getLogger().warning("[OpenWhitelist] Player " + name
+                    + " was denied - not whitelisted");
                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                     ChatColor.translateAlternateColorCodes('&',
                         plugin.getConfigManager().getKickMessage()));
