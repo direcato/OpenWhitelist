@@ -14,6 +14,7 @@ public class ConfigManager {
     private String updateUrl;
     private String githubRepo;
     private int checkIntervalHours;
+    private int requestTimeoutSeconds;
 
     public ConfigManager(OpenWhitelistPlugin plugin) {
         this.plugin = plugin;
@@ -26,12 +27,13 @@ public class ConfigManager {
 
         this.bedrockPrefix = config.getString("geyser.bedrock-prefix", ".");
         this.autoStripPrefix = config.getBoolean("geyser.auto-strip-prefix", true);
-        this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted on this server.");
+        this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted.");
         this.whitelistEnabled = config.getBoolean("whitelist.enabled", true);
-        this.updateEnabled = config.getBoolean("update.enabled", false);
+        this.updateEnabled = config.getBoolean("update.enabled", true);
         this.updateUrl = config.getString("update.url", "");
         this.githubRepo = config.getString("update.github-repo", "");
         this.checkIntervalHours = config.getInt("update.check-interval-hours", 24);
+        this.requestTimeoutSeconds = config.getInt("request.timeout-seconds", 600);
     }
 
     public String getBedrockPrefix() {
@@ -64,6 +66,10 @@ public class ConfigManager {
 
     public int getCheckIntervalHours() {
         return checkIntervalHours;
+    }
+
+    public int getRequestTimeoutSeconds() {
+        return requestTimeoutSeconds;
     }
 
     public void setWhitelistEnabled(boolean enabled) {

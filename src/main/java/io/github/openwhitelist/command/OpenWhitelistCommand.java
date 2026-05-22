@@ -2,6 +2,7 @@ package io.github.openwhitelist.command;
 
 import io.github.openwhitelist.OpenWhitelistPlugin;
 import io.github.openwhitelist.geyser.FloodgateHandler;
+import io.github.openwhitelist.request.PendingRequest;
 import io.github.openwhitelist.whitelist.WhitelistEntry;
 import io.github.openwhitelist.whitelist.WhitelistEntry.PlayerType;
 import net.md_5.bungee.api.ChatColor;
@@ -53,6 +54,10 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleOn(sender);
             case "off":
                 return handleOff(sender);
+            case "requests":
+                return handleRequests(sender);
+            case "accept":
+                return handleAccept(sender, args);
             default:
                 sendUsage(sender, label);
                 return true;
@@ -68,6 +73,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " update" + ChatColor.GRAY + " - Check for updates");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " on" + ChatColor.GRAY + " - Enable the whitelist");
         sender.sendMessage(ChatColor.YELLOW + "/" + label + " off" + ChatColor.GRAY + " - Disable the whitelist");
+        sender.sendMessage(ChatColor.YELLOW + "/" + label + " requests" + ChatColor.GRAY + " - View pending requests");
+        sender.sendMessage(ChatColor.YELLOW + "/" + label + " accept <name>" + ChatColor.GRAY + " - Accept a whitelist request");
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
@@ -247,6 +254,64 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleRequests(CommandSender sender) {
+        if (!sender.hasPermission("openwhitelist.requests")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            return true;
+        }
+
+        List<PendingRequest> all = plugin.getRequestManager().getAll();
+        if (all.isEmpty()) {
+            sender.sendMessage(ChatColor.YELLOW + "No pending requests.");
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.GOLD + "===== Pending Requests =====");
+        for (PendingRequest req : all) {
+            sender.sendMessage(ChatColor.WHITE + req.getName()
+                + ChatColor.GRAY + " | Expires in " + req.getRemainingSeconds() + "s"
+                + ChatColor.GRAY + " | Accept: " + ChatColor.YELLOW + "/openw accept " + req.getName());
+        }
+        sender.sendMessage(ChatColor.GOLD + "Total: " + all.size() + " pending");
+        return true;
+    }
+
+    private boolean handleAccept(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("openwhitelist.accept")) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /openw accept <name>");
+            return true;
+        }
+
+        String name = args[1];
+        Optional<PendingRequest> req = plugin.getRequestManager().get(name);
+        if (req.isEmpty()) {
+            sender.sendMessage(ChatColor.RED + name + " has no pending request or it expired.");
+            return true;
+        }
+
+        if (plugin.getWhitelistManager().isWhitelisted(name)) {
+            sender.sendMessage(ChatColor.RED + name + " is already whitelisted.");
+            plugin.getRequestManager().remove(name);
+            return true;
+        }
+
+        PendingRequest pending = req.get();
+        WhitelistEntry entry = new WhitelistEntry(
+            pending.getName(), PlayerType.JAVA, pending.getUuid(), null, sender.getName()
+        );
+        plugin.getWhitelistManager().add(entry);
+        plugin.getRequestManager().remove(name);
+
+        plugin.getLogger().info(sender.getName() + " accepted " + name + "'s whitelist request");
+        sender.sendMessage(ChatColor.GREEN + "Accepted " + ChatColor.WHITE + name
+            + ChatColor.GREEN + "'s request. They are now whitelisted.");
+        return true;
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -258,9 +323,15 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("update");
             completions.add("on");
             completions.add("off");
+            completions.add("requests");
+            completions.add("accept");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
             completions.addAll(plugin.getWhitelistManager().getAllEntries().stream()
                 .map(WhitelistEntry::getName)
+                .collect(Collectors.toList()));
+        } else if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("accept"))) {
+            completions.addAll(plugin.getRequestManager().getAll().stream()
+                .map(PendingRequest::getName)
                 .collect(Collectors.toList()));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
             completions.add("java");

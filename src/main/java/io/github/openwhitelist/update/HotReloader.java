@@ -19,11 +19,16 @@ import java.util.Map;
 public class HotReloader {
 
     public static boolean reload(OpenWhitelistPlugin plugin, Path newJar, Path currentJar) {
-        try {
-            String pluginName = plugin.getName();
+        Path backupJar = currentJar.resolveSibling(currentJar.getFileName() + ".bak");
+        Object paperPm = getPaperPluginManager();
 
-            // Disable via PaperPluginManagerImpl which handles modern Paper 26.1
-            Object paperPm = getPaperPluginManager();
+        try {
+            // Backup original jar
+            if (Files.exists(currentJar)) {
+                Files.copy(currentJar, backupJar, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            String pluginName = plugin.getName();
             if (paperPm != null) {
                 callMethod(paperPm, "disablePlugin", new Class<?>[]{Plugin.class}, plugin);
             } else {
@@ -42,16 +47,43 @@ public class HotReloader {
             PluginManager pm = Bukkit.getPluginManager();
             Plugin loaded = pm.loadPlugin(currentJar.toFile());
             if (loaded == null) {
-                plugin.getLogger().severe("Failed to load updated plugin jar");
-                return false;
+                throw new InvalidPluginException("Plugin didn't load any plugin providers?");
             }
 
             loaded.onLoad();
             pm.enablePlugin(loaded);
+            Files.deleteIfExists(backupJar);
             plugin.getLogger().info("Update complete - " + loaded.getName() + " v" + loaded.getDescription().getVersion());
             return true;
-        } catch (IOException | InvalidPluginException | InvalidDescriptionException e) {
+
+        } catch (Exception e) {
             plugin.getLogger().severe("Hot reload failed: " + e.getMessage());
+            plugin.getLogger().info("Restoring backup...");
+
+            try {
+                if (Files.exists(backupJar)) {
+                    Files.deleteIfExists(currentJar);
+                    Files.move(backupJar, currentJar, StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                PluginManager pm = Bukkit.getPluginManager();
+                if (paperPm != null) {
+                    callMethod(paperPm, "disablePlugin", new Class<?>[]{Plugin.class}, plugin);
+                } else {
+                    pm.disablePlugin(plugin);
+                }
+                unloadFromProviderStorage(paperPm, plugin, plugin.getName());
+
+                Plugin restored = pm.loadPlugin(currentJar.toFile());
+                if (restored != null) {
+                    restored.onLoad();
+                    pm.enablePlugin(restored);
+                    plugin.getLogger().info("Backup restored and plugin re-enabled");
+                }
+            } catch (Exception restoreError) {
+                plugin.getLogger().severe("Failed to restore backup: " + restoreError.getMessage());
+            }
+
             return false;
         }
     }
@@ -69,26 +101,7 @@ public class HotReloader {
     }
 
     private static void unloadFromProviderStorage(Object paperPm, Plugin plugin, String pluginName) {
-        try {
-            Field instanceManagerField = paperPm.getClass().getDeclaredField("instanceManager");
-            instanceManagerField.setAccessible(true);
-            Object instanceManager = instanceManagerField.get(paperPm);
-
-            Field pluginsField = instanceManager.getClass().getDeclaredField("plugins");
-            pluginsField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Plugin> plugins = (List<Plugin>) pluginsField.get(instanceManager);
-            plugins.remove(plugin);
-            pluginsField.set(instanceManager, plugins);
-
-            Field lookupNamesField = instanceManager.getClass().getDeclaredField("lookupNames");
-            lookupNamesField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            Map<String, Plugin> lookupNames = (Map<String, Plugin>) lookupNamesField.get(instanceManager);
-            lookupNames.values().remove(plugin);
-            lookupNamesField.set(instanceManager, lookupNames);
-        } catch (Exception e) {
-            // Fallback: try SimplePluginManager route
+        if (paperPm == null) {
             try {
                 PluginManager pm = Bukkit.getPluginManager();
                 Class<?> spmClass = Class.forName("org.bukkit.plugin.SimplePluginManager");
@@ -107,6 +120,26 @@ public class HotReloader {
                 }
             } catch (Exception ignored) {
             }
+            return;
+        }
+
+        try {
+            Field instanceManagerField = paperPm.getClass().getDeclaredField("instanceManager");
+            instanceManagerField.setAccessible(true);
+            Object instanceManager = instanceManagerField.get(paperPm);
+
+            Field pluginsField = instanceManager.getClass().getDeclaredField("plugins");
+            pluginsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            List<Plugin> plugins = (List<Plugin>) pluginsField.get(instanceManager);
+            plugins.remove(plugin);
+
+            Field lookupNamesField = instanceManager.getClass().getDeclaredField("lookupNames");
+            lookupNamesField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Plugin> lookupNames = (Map<String, Plugin>) lookupNamesField.get(instanceManager);
+            lookupNames.values().remove(plugin);
+        } catch (Exception ignored) {
         }
     }
 

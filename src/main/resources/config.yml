@@ -8,20 +8,23 @@ geyser:
 
 whitelist:
   # Kick message shown to non-whitelisted players
-  kick-message: "&cYou are not whitelisted on this server."
+  kick-message: "&cYou are not whitelisted.\n&eRequest access with &6/openw accept <name>&e or contact an admin."
   # Enable whitelist (set to false to disable all checks)
   enabled: true
 
 update:
   # Enable auto-update checking
-  enabled: false
+  enabled: true
   # Direct download URL for the plugin jar (auto-update uses this)
-  # The "latest" release is auto-built on every push to main
   url: "https://github.com/direcato/OpenWhitelist/releases/download/latest/OpenWhitelist.jar"
   # GitHub repository for API-based version checks (optional)
   github-repo: "direcato/OpenWhitelist"
   # How often to check for updates (in hours)
   check-interval-hours: 24
+
+request:
+  # How long a kick request is valid (in seconds)
+  timeout-seconds: 600
 
 # Don't modify this
 config-version: 1

@@ -41,8 +41,9 @@ public class PlayerLoginListener implements Listener {
                     || plugin.getWhitelistManager().isWhitelisted(bedrockName);
 
                 if (!whitelisted) {
+                    plugin.getRequestManager().add(name, uuid);
                     plugin.getLogger().warning("[OpenWhitelist] Player " + name
-                        + " was denied - not whitelisted");
+                        + " was denied - not whitelisted. Pending request created.");
                     event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                         ChatColor.translateAlternateColorCodes('&',
                             plugin.getConfigManager().getKickMessage()));
@@ -54,8 +55,9 @@ public class PlayerLoginListener implements Listener {
         } else {
             if (!plugin.getWhitelistManager().isWhitelisted(name)
                 && !plugin.getWhitelistManager().isWhitelisted(uuid)) {
+                plugin.getRequestManager().add(name, uuid);
                 plugin.getLogger().warning("[OpenWhitelist] Player " + name
-                    + " was denied - not whitelisted");
+                    + " was denied - not whitelisted. Pending request created.");
                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_WHITELIST,
                     ChatColor.translateAlternateColorCodes('&',
                         plugin.getConfigManager().getKickMessage()));
