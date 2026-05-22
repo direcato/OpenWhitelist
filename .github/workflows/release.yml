@@ -36,16 +36,17 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Push to main — continuous build
+      - name: Push to main — continuous build (pre-release)
         if: github.ref == 'refs/heads/main'
         uses: ncipollo/release-action@v1
         with:
           tag: latest
-          name: "Latest Build"
+          name: "Continuous Build"
           artifacts: build/libs/OpenWhitelist.jar
-          artifactContentType: application/java-archive
+          artifactContentType: application/java-application
           body: "Auto-built from commit ${{ github.sha }}"
           allowUpdates: true
           removeArtifacts: true
           replacesArtifacts: true
+          prerelease: true
           token: ${{ secrets.GITHUB_TOKEN }}
