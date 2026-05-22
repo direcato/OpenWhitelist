@@ -1,7 +1,6 @@
 # OpenWhitelist
 
 Minecraft whitelist plugin for Paper 1.21.4+. Supports Java and Bedrock (Geyser/Floodgate).
-This Plugins is not version locked so It works on All server version (Some old version might not work due to not testing)
 
 ## Install
 
@@ -22,4 +21,6 @@ This Plugins is not version locked so It works on All server version (Some old v
 /openw update          - download and apply latest version
 ```
 
-Bedrock players are detected automatically via Floodgate on join.
+- **Any player** can accept requests and view the pending list (no op needed)
+- Denied players trigger a broadcast: `[OpenWhitelist] PlayerX requested whitelist access — /openw accept PlayerX`
+- Bedrock players are detected automatically via Floodgate on join
