@@ -17,6 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
@@ -99,12 +100,25 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             name = plugin.getConfigManager().stripBedrockPrefix(rawName);
         }
 
+        boolean hasPrefix = plugin.getConfigManager().hasBedrockPrefix(rawName);
+
         if (plugin.getWhitelistManager().isWhitelisted(name)) {
             sender.sendMessage(m.msg("add-already", Messages.p("name", name)));
             return true;
         }
 
-        WhitelistEntry entry = new WhitelistEntry(name, PlayerType.JAVA, null, null, sender.getName());
+        UUID uuid = null;
+        String xuid = null;
+        var fh = plugin.getFloodgateHandler();
+        if (hasPrefix && fh.isAvailable()) {
+            var fPlayer = fh.getFloodgatePlayerByUsername(rawName);
+            if (fPlayer != null) {
+                uuid = fPlayer.getJavaUniqueId();
+                xuid = fPlayer.getXuid();
+            }
+        }
+
+        WhitelistEntry entry = new WhitelistEntry(name, PlayerType.JAVA, uuid, xuid, sender.getName());
         plugin.getWhitelistManager().add(entry);
 
         plugin.getLogger().info(sender.getName() + " added " + name + " to the whitelist");
