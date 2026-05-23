@@ -310,8 +310,11 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("accept");
             completions.add("lang");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lang")) {
-            completions.add("en");
-            completions.add("tl");
+            completions.add("en"); completions.add("tl"); completions.add("es"); completions.add("fr");
+            completions.add("de"); completions.add("pt"); completions.add("ru"); completions.add("zh");
+            completions.add("ja"); completions.add("ko"); completions.add("it"); completions.add("nl");
+            completions.add("tr"); completions.add("vi"); completions.add("pl"); completions.add("ar");
+            completions.add("id");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
             completions.addAll(plugin.getWhitelistManager().getAllEntries().stream()
                 .map(WhitelistEntry::getName)

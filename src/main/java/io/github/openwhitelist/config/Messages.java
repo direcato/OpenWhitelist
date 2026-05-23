@@ -37,7 +37,11 @@ public class Messages {
             Files.createDirectories(langDir);
         } catch (IOException ignored) {}
 
-        for (String file : new String[]{"lang_en.yml", "lang_tl.yml"}) {
+        String[] files = {"lang_en.yml", "lang_tl.yml", "lang_es.yml", "lang_fr.yml", "lang_de.yml",
+            "lang_pt.yml", "lang_ru.yml", "lang_zh.yml", "lang_ja.yml", "lang_ko.yml",
+            "lang_it.yml", "lang_nl.yml", "lang_tr.yml", "lang_vi.yml", "lang_pl.yml",
+            "lang_ar.yml", "lang_id.yml"};
+        for (String file : files) {
             File target = langDir.resolve(file).toFile();
             if (!target.exists()) {
                 try (InputStream in = plugin.getResource("lang/" + file)) {
