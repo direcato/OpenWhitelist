@@ -11,9 +11,12 @@ usage-off: "&e/openw off&7 - Disable the whitelist"
 usage-requests: "&e/openw requests&7 - View pending requests"
 usage-accept: "&e/openw accept <name>&7 - Accept a whitelist request"
 usage-lang: "&e/openw lang <code>&7 - Change language (en, tl, or custom)"
+usage-set: "&e/openw set&7 - Whitelist all online players"
 
 lang-usage: "&cUsage: /openw lang <code>"
 lang-success: "&aLanguage changed to &f{lang}&a."
+
+set-result: "&aWhitelisted all online players. &f{added}&a added, &f{skipped}&a already whitelisted."
 
 no-permission: "&cYou don't have permission."
 

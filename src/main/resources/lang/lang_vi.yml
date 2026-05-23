@@ -38,3 +38,5 @@ broadcast-request: "&b[OpenWhitelist] &f{name}&b da yeu cau truy cap — &e/open
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b da duoc chap nhan boi &f{acceptor}"
 lang-usage: "&cCach dung: /openw lang <code>"
 lang-success: "&aDa doi ngon ngu sang &f{lang}&a."
+usage-set: "&e/openw set&7 - Whitelist all online players"
+set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."

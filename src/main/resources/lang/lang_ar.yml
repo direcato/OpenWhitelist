@@ -38,3 +38,5 @@ broadcast-request: "&b[OpenWhitelist] &f{name}&b talaba alwusul — &e/openw acc
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b tam qabuluh min qibal &f{acceptor}"
 lang-usage: "&calastikhdam: /openw lang <code>"
 lang-success: "&atam taghyir allugha 'iilaa &f{lang}&a."
+usage-set: "&e/openw set&7 - Whitelist all online players"
+set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."

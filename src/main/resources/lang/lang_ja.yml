@@ -38,3 +38,5 @@ broadcast-request: "&b[OpenWhitelist] &f{name}&b ga akusesu wo yoseU — &e/open
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b ga &f{acceptor}&b ni shOnin sareMashita"
 lang-usage: "&cTsukai kata: /openw lang <code>"
 lang-success: "&aGengo wo &f{lang}&a ni kirikaeMashita."
+usage-set: "&e/openw set&7 - Whitelist all online players"
+set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."

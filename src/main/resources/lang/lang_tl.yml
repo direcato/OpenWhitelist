@@ -11,9 +11,12 @@ usage-off: "&e/openw off&7 - I-disable ang whitelist"
 usage-requests: "&e/openw requests&7 - Tingnan ang mga pending requests"
 usage-accept: "&e/openw accept <name>&7 - Tanggapin ang whitelist request"
 usage-lang: "&e/openw lang <code>&7 - Palitan ang wika (en, tl, o custom)"
+usage-set: "&e/openw set&7 - I-whitelist ang lahat ng online"
 
 lang-usage: "&cGamit: /openw lang <code>"
 lang-success: "&aPinalitan ang wika sa &f{lang}&a."
+
+set-result: "&aNa-whitelist ang lahat ng online. &f{added}&a naidagdag, &f{skipped}&a naka-whitelist na."
 
 no-permission: "&cWala kang permission."
 

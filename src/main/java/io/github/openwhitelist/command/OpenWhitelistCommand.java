@@ -59,6 +59,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleAccept(sender, args);
             case "lang":
                 return handleLang(sender, args);
+            case "set":
+                return handleSet(sender);
             default:
                 sendUsage(sender);
                 return true;
@@ -76,6 +78,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(m.msg("usage-requests"));
         sender.sendMessage(m.msg("usage-accept"));
         sender.sendMessage(m.msg("usage-lang"));
+        sender.sendMessage(m.msg("usage-set"));
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
@@ -276,6 +279,34 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleSet(CommandSender sender) {
+        if (!sender.hasPermission("openwhitelist.set")) {
+            sender.sendMessage(m.msg("no-permission"));
+            return true;
+        }
+
+        int added = 0;
+        int skipped = 0;
+        for (var player : Bukkit.getOnlinePlayers()) {
+            String name = player.getName();
+            if (plugin.getWhitelistManager().isWhitelisted(name)
+                || plugin.getWhitelistManager().isWhitelisted(player.getUniqueId())) {
+                skipped++;
+                continue;
+            }
+            WhitelistEntry entry = new WhitelistEntry(name, PlayerType.JAVA,
+                player.getUniqueId(), null, sender.getName());
+            plugin.getWhitelistManager().add(entry);
+            added++;
+        }
+
+        plugin.getLogger().info(sender.getName() + " whitelisted all online players (" + added + " added, " + skipped + " skipped)");
+        sender.sendMessage(m.msg("set-result",
+            Messages.p("added", String.valueOf(added)),
+            Messages.p("skipped", String.valueOf(skipped))));
+        return true;
+    }
+
     private boolean handleLang(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.lang")) {
             sender.sendMessage(m.msg("no-permission"));
@@ -309,6 +340,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("requests");
             completions.add("accept");
             completions.add("lang");
+            completions.add("set");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lang")) {
             completions.add("en"); completions.add("tl"); completions.add("es"); completions.add("fr");
             completions.add("de"); completions.add("pt"); completions.add("ru"); completions.add("zh");

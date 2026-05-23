@@ -38,3 +38,5 @@ broadcast-request: "&b[OpenWhitelist] &f{name}&b(yi)ga akseseureul yocheong — 
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b(yi)ga &f{acceptor}&b(e)ui surageul batchieossseumnida"
 lang-usage: "&cSayongbeop: /openw lang <code>"
 lang-success: "&aEoneoga &f{lang}&a(e)ro byeongyeongdoeeossseumnida."
+usage-set: "&e/openw set&7 - Whitelist all online players"
+set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."

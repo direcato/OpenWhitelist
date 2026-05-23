@@ -38,3 +38,5 @@ broadcast-request: "&b[OpenWhitelist] &f{name}&b solicito acceso — &e/openw ac
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b fue aceptado por &f{acceptor}"
 lang-usage: "&cUso: /openw lang <code>"
 lang-success: "&aIdioma cambiado a &f{lang}&a."
+usage-set: "&e/openw set&7 - Whitelist all online players"
+set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."
