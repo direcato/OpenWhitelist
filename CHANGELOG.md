@@ -2,13 +2,16 @@
 
 ## 1.6.0
 - Request system: kicked players create a pending request, `/openw requests` and `/openw accept <name>` to approve
-- Any player can accept requests (no op required)
-- Broadcast alerts when a player is denied (`[OpenWhitelist] PlayerX requested whitelist access — /openw accept PlayerX`)
-- Broadcast alerts when a request is accepted
-- Removed `[java|bedrock]` type from `/openw add` — type is auto-detected via Floodgate on join
-- Removed `/openw update` command, auto-update, and UpdateChecker entirely
-- Single release on GitHub — only updates when the jar actually changes
-- Simplified config (removed `update` section and `check-interval-hours`)
+- Any player can use any command (no op needed — all permissions default: true)
+- Broadcast alerts when a player is denied and when a request is accepted
+- Removed `[java|bedrock]` type from `/openw add` — auto-detected via Floodgate
+- Removed `/openw update` and all auto-update code
+- Single release on GitHub — only updates when the jar changes
+- Language system with 17 languages: en, tl, es, fr, de, pt, ru, zh, ja, ko, it, nl, tr, vi, pl, ar, id
+- `/openw lang <code>` to switch language in-game (no op needed)
+- Config option `language:` to set default language
+- All messages loaded from `plugins/OpenWhitelist/lang/lang_<code>.yml` — editable
+- Simplified config (removed `update` section)
 
 ## 1.5.2
 - Fixed hot-reload on Paper 26.1+ (provider storage reflection)
