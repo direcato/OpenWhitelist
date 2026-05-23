@@ -1,0 +1,48 @@
+# Tagalog translations
+# Use & for color codes
+
+usage-header: "&6===== OpenWhitelist ====="
+usage-add: "&e/openw add <name>&7 - Magdagdag ng manlalaro"
+usage-remove: "&e/openw remove <name>&7 - Tanggalin ang manlalaro"
+usage-list: "&e/openw list [page]&7 - Ilista ang mga naka-whitelist"
+usage-reload: "&e/openw reload&7 - I-reload ang config at whitelist"
+usage-on: "&e/openw on&7 - I-enable ang whitelist"
+usage-off: "&e/openw off&7 - I-disable ang whitelist"
+usage-requests: "&e/openw requests&7 - Tingnan ang mga pending requests"
+usage-accept: "&e/openw accept <name>&7 - Tanggapin ang whitelist request"
+
+no-permission: "&cWala kang permission."
+
+add-usage: "&cGamit: /openw add <name>"
+add-already: "&c{name} ay naka-whitelist na."
+add-success: "&aNaidagdag si &f{name}&a sa whitelist."
+
+remove-usage: "&cGamit: /openw remove <name>"
+remove-success: "&aNatanggal si &f{name}&a sa whitelist."
+remove-not-found: "&cSi {name} ay wala sa whitelist."
+
+list-header: "&6===== Whitelist (Page {page}/{total}) ====="
+list-entry: "&f{name}&7 | &b{type}&7 | Idinagdag: {date}{xuid}"
+list-xuid: " &7| XUID: {xuid}"
+list-total: "&6Kabuuan: {count} entries"
+list-empty: "&eWalang laman ang whitelist."
+list-invalid-page: "&cHindi valid ang page number."
+list-page-missing: "&cPage {page} ay wala. Max page: {max}"
+
+reload-success: "&aNa-reload ang OpenWhitelist config at whitelist."
+
+on-success: "&aNa-enable ang whitelist."
+off-success: "&aNa-disable ang whitelist."
+
+requests-header: "&6===== Mga Pending Requests ====="
+requests-entry: "&f{name}&7 | Mawawala sa {seconds}s&7 | Tanggapin: &e/openw accept {name}"
+requests-total: "&6Kabuuan: {count} pending"
+requests-empty: "&eWalang pending requests."
+
+accept-usage: "&cGamit: /openw accept <name>"
+accept-no-request: "&cSi {name} ay walang pending request o expired na."
+accept-already: "&cSi {name} ay naka-whitelist na."
+accept-success: "&aTinanggap ang request ni &f{name}&a. Naka-whitelist na siya."
+
+broadcast-request: "&b[OpenWhitelist] &f{name}&b humiling ng whitelist access — &e/openw accept {name}"
+broadcast-accept: "&b[OpenWhitelist] &f{name}&b ay tinanggap ni &f{acceptor}"

@@ -1,10 +1,10 @@
 package io.github.openwhitelist.command;
 
 import io.github.openwhitelist.OpenWhitelistPlugin;
+import io.github.openwhitelist.config.Messages;
 import io.github.openwhitelist.request.PendingRequest;
 import io.github.openwhitelist.whitelist.WhitelistEntry;
 import io.github.openwhitelist.whitelist.WhitelistEntry.PlayerType;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,15 +26,17 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
     private static final int PAGE_SIZE = 10;
 
     private final OpenWhitelistPlugin plugin;
+    private final Messages m;
 
     public OpenWhitelistCommand(OpenWhitelistPlugin plugin) {
         this.plugin = plugin;
+        this.m = plugin.getMessages();
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sendUsage(sender, label);
+            sendUsage(sender);
             return true;
         }
 
@@ -56,30 +58,30 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             case "accept":
                 return handleAccept(sender, args);
             default:
-                sendUsage(sender, label);
+                sendUsage(sender);
                 return true;
         }
     }
 
-    private void sendUsage(CommandSender sender, String label) {
-        sender.sendMessage(ChatColor.GOLD + "===== OpenWhitelist =====");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " add <name>" + ChatColor.GRAY + " - Add a player");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " remove <name>" + ChatColor.GRAY + " - Remove a player");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " list [page]" + ChatColor.GRAY + " - List whitelisted players");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " reload" + ChatColor.GRAY + " - Reload config & whitelist");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " on" + ChatColor.GRAY + " - Enable the whitelist");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " off" + ChatColor.GRAY + " - Disable the whitelist");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " requests" + ChatColor.GRAY + " - View pending requests");
-        sender.sendMessage(ChatColor.YELLOW + "/" + label + " accept <name>" + ChatColor.GRAY + " - Accept a whitelist request");
+    private void sendUsage(CommandSender sender) {
+        sender.sendMessage(m.msg("usage-header"));
+        sender.sendMessage(m.msg("usage-add"));
+        sender.sendMessage(m.msg("usage-remove"));
+        sender.sendMessage(m.msg("usage-list"));
+        sender.sendMessage(m.msg("usage-reload"));
+        sender.sendMessage(m.msg("usage-on"));
+        sender.sendMessage(m.msg("usage-off"));
+        sender.sendMessage(m.msg("usage-requests"));
+        sender.sendMessage(m.msg("usage-accept"));
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.add")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /openw add <name>");
+            sender.sendMessage(m.msg("add-usage"));
             return true;
         }
 
@@ -92,7 +94,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         }
 
         if (plugin.getWhitelistManager().isWhitelisted(name)) {
-            sender.sendMessage(ChatColor.RED + name + " is already whitelisted.");
+            sender.sendMessage(m.msg("add-already", Messages.p("name", name)));
             return true;
         }
 
@@ -100,35 +102,33 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         plugin.getWhitelistManager().add(entry);
 
         plugin.getLogger().info(sender.getName() + " added " + name + " to the whitelist");
-        sender.sendMessage(ChatColor.GREEN + "Added " + ChatColor.WHITE + name
-            + ChatColor.GREEN + " to the whitelist.");
+        sender.sendMessage(m.msg("add-success", Messages.p("name", name)));
         return true;
     }
 
     private boolean handleRemove(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.remove")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /openw remove <name>");
+            sender.sendMessage(m.msg("remove-usage"));
             return true;
         }
 
         String name = args[1];
         if (plugin.getWhitelistManager().remove(name)) {
             plugin.getLogger().info(sender.getName() + " removed " + name + " from the whitelist");
-            sender.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.WHITE + name
-                + ChatColor.GREEN + " from the whitelist.");
+            sender.sendMessage(m.msg("remove-success", Messages.p("name", name)));
         } else {
-            sender.sendMessage(ChatColor.RED + name + " is not whitelisted.");
+            sender.sendMessage(m.msg("remove-not-found", Messages.p("name", name)));
         }
         return true;
     }
 
     private boolean handleList(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.list")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
 
@@ -137,114 +137,123 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             try {
                 page = Math.max(0, Integer.parseInt(args[1]) - 1);
             } catch (NumberFormatException e) {
-                sender.sendMessage(ChatColor.RED + "Invalid page number.");
+                sender.sendMessage(m.msg("list-invalid-page"));
                 return true;
             }
         }
 
         int totalPages = plugin.getWhitelistManager().getTotalPages(PAGE_SIZE);
         if (totalPages == 0) {
-            sender.sendMessage(ChatColor.YELLOW + "The whitelist is empty.");
+            sender.sendMessage(m.msg("list-empty"));
             return true;
         }
         if (page >= totalPages) {
-            sender.sendMessage(ChatColor.RED + "Page " + (page + 1) + " doesn't exist. Max page: " + totalPages);
+            sender.sendMessage(m.msg("list-page-missing",
+                Messages.p("page", String.valueOf(page + 1)),
+                Messages.p("max", String.valueOf(totalPages))));
             return true;
         }
 
-        sender.sendMessage(ChatColor.GOLD + "===== Whitelist (Page "
-            + (page + 1) + "/" + totalPages + ") =====");
+        sender.sendMessage(m.msg("list-header",
+            Messages.p("page", String.valueOf(page + 1)),
+            Messages.p("total", String.valueOf(totalPages))));
 
         for (WhitelistEntry entry : plugin.getWhitelistManager().getEntries(page, PAGE_SIZE)) {
             String date = DATE_FORMAT.format(Instant.ofEpochMilli(entry.getAddedAt()));
-            sender.sendMessage(ChatColor.WHITE + entry.getName()
-                + ChatColor.GRAY + " | " + ChatColor.AQUA + entry.getType()
-                + ChatColor.GRAY + " | Added: " + date
-                + (entry.getXuid() != null ? ChatColor.GRAY + " | XUID: " + entry.getXuid() : ""));
+            String xuidStr = entry.getXuid() != null
+                ? m.msg("list-xuid", Messages.p("xuid", entry.getXuid()))
+                : "";
+            sender.sendMessage(m.msg("list-entry",
+                Messages.p("name", entry.getName()),
+                Messages.p("type", entry.getType().name()),
+                Messages.p("date", date),
+                Messages.p("xuid", xuidStr)));
         }
 
-        sender.sendMessage(ChatColor.GOLD + "Total: " + plugin.getWhitelistManager().getEntryCount() + " entries");
+        sender.sendMessage(m.msg("list-total",
+            Messages.p("count", String.valueOf(plugin.getWhitelistManager().getEntryCount()))));
         return true;
     }
 
     private boolean handleReload(CommandSender sender) {
         if (!sender.hasPermission("openwhitelist.reload")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
 
         plugin.getConfigManager().reload();
         plugin.getWhitelistManager().load();
-        sender.sendMessage(ChatColor.GREEN + "OpenWhitelist config & whitelist reloaded.");
+        sender.sendMessage(m.msg("reload-success"));
         plugin.getLogger().info("Reloaded by " + sender.getName());
         return true;
     }
 
     private boolean handleOn(CommandSender sender) {
         if (!sender.hasPermission("openwhitelist.on")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
         plugin.getConfigManager().setWhitelistEnabled(true);
         plugin.getConfigManager().save();
         plugin.getLogger().info("Whitelist enabled by " + sender.getName());
-        sender.sendMessage(ChatColor.GREEN + "Whitelist enabled.");
+        sender.sendMessage(m.msg("on-success"));
         return true;
     }
 
     private boolean handleOff(CommandSender sender) {
         if (!sender.hasPermission("openwhitelist.off")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
         plugin.getConfigManager().setWhitelistEnabled(false);
         plugin.getConfigManager().save();
         plugin.getLogger().info("Whitelist disabled by " + sender.getName());
-        sender.sendMessage(ChatColor.GREEN + "Whitelist disabled.");
+        sender.sendMessage(m.msg("off-success"));
         return true;
     }
 
     private boolean handleRequests(CommandSender sender) {
         if (!sender.hasPermission("openwhitelist.requests")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
 
         List<PendingRequest> all = plugin.getRequestManager().getAll();
         if (all.isEmpty()) {
-            sender.sendMessage(ChatColor.YELLOW + "No pending requests.");
+            sender.sendMessage(m.msg("requests-empty"));
             return true;
         }
 
-        sender.sendMessage(ChatColor.GOLD + "===== Pending Requests =====");
+        sender.sendMessage(m.msg("requests-header"));
         for (PendingRequest req : all) {
-            sender.sendMessage(ChatColor.WHITE + req.getName()
-                + ChatColor.GRAY + " | Expires in " + req.getRemainingSeconds() + "s"
-                + ChatColor.GRAY + " | Accept: " + ChatColor.YELLOW + "/openw accept " + req.getName());
+            sender.sendMessage(m.msg("requests-entry",
+                Messages.p("name", req.getName()),
+                Messages.p("seconds", String.valueOf(req.getRemainingSeconds()))));
         }
-        sender.sendMessage(ChatColor.GOLD + "Total: " + all.size() + " pending");
+        sender.sendMessage(m.msg("requests-total",
+            Messages.p("count", String.valueOf(all.size()))));
         return true;
     }
 
     private boolean handleAccept(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.accept")) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission.");
+            sender.sendMessage(m.msg("no-permission"));
             return true;
         }
         if (args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "Usage: /openw accept <name>");
+            sender.sendMessage(m.msg("accept-usage"));
             return true;
         }
 
         String name = args[1];
         Optional<PendingRequest> req = plugin.getRequestManager().get(name);
         if (req.isEmpty()) {
-            sender.sendMessage(ChatColor.RED + name + " has no pending request or it expired.");
+            sender.sendMessage(m.msg("accept-no-request", Messages.p("name", name)));
             return true;
         }
 
         if (plugin.getWhitelistManager().isWhitelisted(name)) {
-            sender.sendMessage(ChatColor.RED + name + " is already whitelisted.");
+            sender.sendMessage(m.msg("accept-already", Messages.p("name", name)));
             plugin.getRequestManager().remove(name);
             return true;
         }
@@ -257,10 +266,10 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         plugin.getRequestManager().remove(name);
 
         plugin.getLogger().info(sender.getName() + " accepted " + name + "'s whitelist request");
-        sender.sendMessage(ChatColor.GREEN + "Accepted " + ChatColor.WHITE + name
-            + ChatColor.GREEN + "'s request. They are now whitelisted.");
-        Bukkit.broadcastMessage(ChatColor.AQUA + "[OpenWhitelist] " + ChatColor.WHITE + name
-            + ChatColor.AQUA + " was accepted by " + ChatColor.WHITE + sender.getName());
+        sender.sendMessage(m.msg("accept-success", Messages.p("name", name)));
+        Bukkit.broadcastMessage(m.msg("broadcast-accept",
+            Messages.p("name", name),
+            Messages.p("acceptor", sender.getName())));
         return true;
     }
 
@@ -280,7 +289,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.addAll(plugin.getWhitelistManager().getAllEntries().stream()
                 .map(WhitelistEntry::getName)
                 .collect(Collectors.toList()));
-        } else if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("accept"))) {
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("accept")) {
             completions.addAll(plugin.getRequestManager().getAll().stream()
                 .map(PendingRequest::getName)
                 .collect(Collectors.toList()));

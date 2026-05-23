@@ -1,0 +1,48 @@
+# English translations
+# Use & for color codes
+
+usage-header: "&6===== OpenWhitelist ====="
+usage-add: "&e/openw add <name>&7 - Add a player"
+usage-remove: "&e/openw remove <name>&7 - Remove a player"
+usage-list: "&e/openw list [page]&7 - List whitelisted players"
+usage-reload: "&e/openw reload&7 - Reload config & whitelist"
+usage-on: "&e/openw on&7 - Enable the whitelist"
+usage-off: "&e/openw off&7 - Disable the whitelist"
+usage-requests: "&e/openw requests&7 - View pending requests"
+usage-accept: "&e/openw accept <name>&7 - Accept a whitelist request"
+
+no-permission: "&cYou don't have permission."
+
+add-usage: "&cUsage: /openw add <name>"
+add-already: "&c{name} is already whitelisted."
+add-success: "&aAdded &f{name}&a to the whitelist."
+
+remove-usage: "&cUsage: /openw remove <name>"
+remove-success: "&aRemoved &f{name}&a from the whitelist."
+remove-not-found: "&c{name} is not whitelisted."
+
+list-header: "&6===== Whitelist (Page {page}/{total}) ====="
+list-entry: "&f{name}&7 | &b{type}&7 | Added: {date}{xuid}"
+list-xuid: " &7| XUID: {xuid}"
+list-total: "&6Total: {count} entries"
+list-empty: "&eThe whitelist is empty."
+list-invalid-page: "&cInvalid page number."
+list-page-missing: "&cPage {page} doesn't exist. Max page: {max}"
+
+reload-success: "&aOpenWhitelist config & whitelist reloaded."
+
+on-success: "&aWhitelist enabled."
+off-success: "&aWhitelist disabled."
+
+requests-header: "&6===== Pending Requests ====="
+requests-entry: "&f{name}&7 | Expires in {seconds}s&7 | Accept: &e/openw accept {name}"
+requests-total: "&6Total: {count} pending"
+requests-empty: "&eNo pending requests."
+
+accept-usage: "&cUsage: /openw accept <name>"
+accept-no-request: "&c{name} has no pending request or it expired."
+accept-already: "&c{name} is already whitelisted."
+accept-success: "&aAccepted &f{name}&a's request. They are now whitelisted."
+
+broadcast-request: "&b[OpenWhitelist] &f{name}&b requested whitelist access — &e/openw accept {name}"
+broadcast-accept: "&b[OpenWhitelist] &f{name}&b was accepted by &f{acceptor}"

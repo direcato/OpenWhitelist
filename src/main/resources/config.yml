@@ -1,5 +1,8 @@
 # OpenWhitelist Configuration
 
+# Language (en, tl, or create your own lang/lang_<code>.yml)
+language: en
+
 geyser:
   # Prefix added to Bedrock player usernames by Floodgate
   bedrock-prefix: "."

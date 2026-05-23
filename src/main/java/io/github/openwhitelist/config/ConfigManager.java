@@ -10,10 +10,8 @@ public class ConfigManager {
     private boolean autoStripPrefix;
     private String kickMessage;
     private boolean whitelistEnabled;
-    private boolean updateEnabled;
-    private String updateUrl;
-    private String githubRepo;
     private int requestTimeoutSeconds;
+    private String language;
 
     public ConfigManager(OpenWhitelistPlugin plugin) {
         this.plugin = plugin;
@@ -26,12 +24,10 @@ public class ConfigManager {
 
         this.bedrockPrefix = config.getString("geyser.bedrock-prefix", ".");
         this.autoStripPrefix = config.getBoolean("geyser.auto-strip-prefix", true);
-        this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted.");
+        this.kickMessage = config.getString("whitelist.kick-message", "&cYou are not whitelisted.\n&eRequest access with &6/openw accept <name>&e or contact an admin.");
         this.whitelistEnabled = config.getBoolean("whitelist.enabled", true);
-        this.updateEnabled = config.getBoolean("update.enabled", true);
-        this.updateUrl = config.getString("update.url", "");
-        this.githubRepo = config.getString("update.github-repo", "");
         this.requestTimeoutSeconds = config.getInt("request.timeout-seconds", 600);
+        this.language = config.getString("language", "en");
     }
 
     public String getBedrockPrefix() {
@@ -50,20 +46,12 @@ public class ConfigManager {
         return whitelistEnabled;
     }
 
-    public boolean isUpdateEnabled() {
-        return updateEnabled;
-    }
-
-    public String getUpdateUrl() {
-        return updateUrl;
-    }
-
-    public String getGithubRepo() {
-        return githubRepo;
-    }
-
     public int getRequestTimeoutSeconds() {
         return requestTimeoutSeconds;
+    }
+
+    public String getLanguage() {
+        return language;
     }
 
     public void setWhitelistEnabled(boolean enabled) {

@@ -1,6 +1,7 @@
 package io.github.openwhitelist.listener;
 
 import io.github.openwhitelist.OpenWhitelistPlugin;
+import io.github.openwhitelist.config.Messages;
 import io.github.openwhitelist.geyser.FloodgateHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -14,9 +15,11 @@ import java.util.UUID;
 public class PlayerLoginListener implements Listener {
 
     private final OpenWhitelistPlugin plugin;
+    private final Messages m;
 
     public PlayerLoginListener(OpenWhitelistPlugin plugin) {
         this.plugin = plugin;
+        this.m = plugin.getMessages();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -70,9 +73,7 @@ public class PlayerLoginListener implements Listener {
 
     private void broadcastRequest(String name) {
         plugin.getServer().getScheduler().runTask(plugin, () ->
-            Bukkit.broadcastMessage(ChatColor.AQUA + "[OpenWhitelist] " + ChatColor.WHITE + name
-                + ChatColor.AQUA + " requested whitelist access — "
-                + ChatColor.YELLOW + "/openw accept " + name)
+            Bukkit.broadcastMessage(m.msg("broadcast-request", Messages.p("name", name)))
         );
     }
 

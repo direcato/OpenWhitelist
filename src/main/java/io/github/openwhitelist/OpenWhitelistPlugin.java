@@ -2,6 +2,7 @@ package io.github.openwhitelist;
 
 import io.github.openwhitelist.command.OpenWhitelistCommand;
 import io.github.openwhitelist.config.ConfigManager;
+import io.github.openwhitelist.config.Messages;
 import io.github.openwhitelist.geyser.FloodgateHandler;
 import io.github.openwhitelist.listener.PlayerLoginListener;
 import io.github.openwhitelist.request.RequestManager;
@@ -14,11 +15,13 @@ public class OpenWhitelistPlugin extends JavaPlugin {
     private WhitelistManager whitelistManager;
     private FloodgateHandler floodgateHandler;
     private RequestManager requestManager;
+    private Messages messages;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         this.configManager = new ConfigManager(this);
+        this.messages = new Messages(this);
         this.whitelistManager = new WhitelistManager(this);
         this.floodgateHandler = new FloodgateHandler(this);
         this.requestManager = new RequestManager();
@@ -67,5 +70,9 @@ public class OpenWhitelistPlugin extends JavaPlugin {
 
     public RequestManager getRequestManager() {
         return requestManager;
+    }
+
+    public Messages getMessages() {
+        return messages;
     }
 }
