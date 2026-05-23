@@ -54,12 +54,17 @@ public class ConfigManager {
         return language;
     }
 
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
     public void setWhitelistEnabled(boolean enabled) {
         this.whitelistEnabled = enabled;
     }
 
     public void save() {
         plugin.getConfig().set("whitelist.enabled", whitelistEnabled);
+        plugin.getConfig().set("language", language);
         plugin.saveConfig();
     }
 

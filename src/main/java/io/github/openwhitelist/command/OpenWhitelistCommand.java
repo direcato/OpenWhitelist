@@ -57,6 +57,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleRequests(sender);
             case "accept":
                 return handleAccept(sender, args);
+            case "lang":
+                return handleLang(sender, args);
             default:
                 sendUsage(sender);
                 return true;
@@ -73,6 +75,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(m.msg("usage-off"));
         sender.sendMessage(m.msg("usage-requests"));
         sender.sendMessage(m.msg("usage-accept"));
+        sender.sendMessage(m.msg("usage-lang"));
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
@@ -273,6 +276,26 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleLang(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("openwhitelist.lang")) {
+            sender.sendMessage(m.msg("no-permission"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(m.msg("lang-usage"));
+            return true;
+        }
+
+        String code = args[1].toLowerCase();
+        plugin.getConfigManager().setLanguage(code);
+        plugin.getConfigManager().save();
+        plugin.getMessages().reload();
+
+        plugin.getLogger().info(sender.getName() + " changed language to " + code);
+        sender.sendMessage(m.msg("lang-success", Messages.p("lang", code)));
+        return true;
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -285,6 +308,10 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("off");
             completions.add("requests");
             completions.add("accept");
+            completions.add("lang");
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("lang")) {
+            completions.add("en");
+            completions.add("tl");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
             completions.addAll(plugin.getWhitelistManager().getAllEntries().stream()
                 .map(WhitelistEntry::getName)
