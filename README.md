@@ -2,6 +2,9 @@
 
 Minecraft whitelist plugin for Paper 1.21.4+. Supports Java and Bedrock (Geyser/Floodgate).
 
+## Back to Life
+Im abit casual to reborn the project abit to update some stuff and use workflow so I don't kill my computer for the long gradle build
+
 ## Install
 
 1. Drop `OpenWhitelist.jar` into your `plugins/` folder
