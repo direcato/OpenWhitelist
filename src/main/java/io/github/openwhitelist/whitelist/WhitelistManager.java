@@ -124,4 +124,12 @@ public class WhitelistManager {
     public int getEntryCount() {
         return entries.size();
     }
+
+    public void cleanupExpired() {
+        boolean removed = entries.removeIf(WhitelistEntry::isExpired);
+        if (removed) {
+            save();
+            plugin.getLogger().info("Removed expired timed whitelist entries");
+        }
+    }
 }

@@ -1,9 +1,25 @@
+import java.io.ByteArrayOutputStream
+
 plugins {
     java
 }
 
 group = "io.github.openwhitelist"
-version = "1.6.0"
+
+version = try {
+    ByteArrayOutputStream().use { baos ->
+        exec {
+            commandLine("git", "describe", "--tags", "--dirty", "--always")
+            standardOutput = baos
+            errorOutput = ByteArrayOutputStream()
+            isIgnoreExitValue = true
+        }
+        val raw = baos.toString("UTF-8").trim()
+        if (raw.isEmpty()) "0.0.0-SNAPSHOT" else raw.removePrefix("v")
+    }
+} catch (e: Exception) {
+    "0.0.0-SNAPSHOT"
+}
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))

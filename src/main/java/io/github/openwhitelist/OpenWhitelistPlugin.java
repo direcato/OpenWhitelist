@@ -45,6 +45,9 @@ public class OpenWhitelistPlugin extends JavaPlugin {
             getLogger().info("Floodgate not found - Java-only mode");
         }
 
+        getServer().getScheduler().runTaskTimer(this, () ->
+            whitelistManager.cleanupExpired(), 600L, 600L);
+
         getLogger().info("OpenWhitelist v" + getDescription().getVersion() + " enabled");
     }
 

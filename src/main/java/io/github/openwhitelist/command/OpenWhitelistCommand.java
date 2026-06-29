@@ -60,6 +60,8 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
                 return handleAccept(sender, args);
             case "lang":
                 return handleLang(sender, args);
+            case "timeout":
+                return handleTimeout(sender, args);
             case "set":
                 return handleSet(sender);
             default:
@@ -80,6 +82,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(m.msg("usage-accept"));
         sender.sendMessage(m.msg("usage-lang"));
         sender.sendMessage(m.msg("usage-set"));
+        sender.sendMessage(m.msg("usage-timeout"));
     }
 
     private boolean handleAdd(CommandSender sender, String[] args) {
@@ -321,6 +324,31 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean handleTimeout(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("openwhitelist.timeout")) {
+            sender.sendMessage(m.msg("no-permission"));
+            return true;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(m.msg("timeout-usage"));
+            return true;
+        }
+
+        String name = args[1];
+        if (plugin.getWhitelistManager().isWhitelisted(name)) {
+            sender.sendMessage(m.msg("timeout-already", Messages.p("name", name)));
+            return true;
+        }
+
+        long expiry = System.currentTimeMillis() + 300_000L;
+        WhitelistEntry entry = new WhitelistEntry(name, PlayerType.JAVA, null, null, sender.getName(), expiry);
+        plugin.getWhitelistManager().add(entry);
+
+        plugin.getLogger().info(sender.getName() + " added " + name + " to the whitelist (5min timeout)");
+        sender.sendMessage(m.msg("timeout-success", Messages.p("name", name)));
+        return true;
+    }
+
     private boolean handleLang(CommandSender sender, String[] args) {
         if (!sender.hasPermission("openwhitelist.lang")) {
             sender.sendMessage(m.msg("no-permission"));
@@ -355,6 +383,7 @@ public class OpenWhitelistCommand implements CommandExecutor, TabCompleter {
             completions.add("accept");
             completions.add("lang");
             completions.add("set");
+            completions.add("timeout");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("lang")) {
             completions.add("en"); completions.add("tl"); completions.add("es"); completions.add("fr");
             completions.add("de"); completions.add("pt"); completions.add("ru"); completions.add("zh");

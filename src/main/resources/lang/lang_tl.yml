@@ -53,3 +53,8 @@ accept-success: "&aTinanggap ang request ni &f{name}&a. Naka-whitelist na siya."
 
 broadcast-request: "&b[OpenWhitelist] &f{name}&b humiling ng whitelist access — &e/openw accept {name}"
 broadcast-accept: "&b[OpenWhitelist] &f{name}&b ay tinanggap ni &f{acceptor}"
+
+timeout-usage: "&cUsage: /openw timeout <name>"
+timeout-already: "&c{name} is already whitelisted."
+timeout-success: "&aAdded &f{name}&a to the whitelist for 5 minutes."
+usage-timeout: "&e/openw timeout <name>&7 - Temporarily whitelist a player for 5 minutes"

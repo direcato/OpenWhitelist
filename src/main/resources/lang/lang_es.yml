@@ -40,3 +40,8 @@ lang-usage: "&cUso: /openw lang <code>"
 lang-success: "&aIdioma cambiado a &f{lang}&a."
 usage-set: "&e/openw set&7 - Whitelist all online players"
 set-result: "&aAll online players whitelisted. &f{added}&a added, &f{skipped}&a skipped."
+
+timeout-usage: "&cUsage: /openw timeout <name>"
+timeout-already: "&c{name} is already whitelisted."
+timeout-success: "&aAdded &f{name}&a to the whitelist for 5 minutes."
+usage-timeout: "&e/openw timeout <name>&7 - Temporarily whitelist a player for 5 minutes"

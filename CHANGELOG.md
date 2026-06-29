@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.0
+- Version now auto-derived from git tags via `git describe`
+- New build workflow — verifies compilation on every push and PR
+- Release workflow now creates versioned GitHub releases from `v*` tags
+- Removed hardcoded version from `build.gradle.kts`
+- Removed `.env` file with stale token
+
 ## 1.6.0
 - Request system: kicked players create a pending request, `/openw requests` and `/openw accept <name>` to approve
 - Any player can use any command (no op needed — all permissions default: true)

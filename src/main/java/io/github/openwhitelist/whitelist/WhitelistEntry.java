@@ -12,17 +12,23 @@ public class WhitelistEntry {
     private String xuid;
     private String addedBy;
     private long addedAt;
+    private long timeout; // 0 = permanent, epoch millis when it expires
 
     public WhitelistEntry() {
     }
 
     public WhitelistEntry(String name, PlayerType type, UUID uuid, String xuid, String addedBy) {
+        this(name, type, uuid, xuid, addedBy, 0);
+    }
+
+    public WhitelistEntry(String name, PlayerType type, UUID uuid, String xuid, String addedBy, long timeout) {
         this.name = name;
         this.type = type;
         this.uuid = uuid;
         this.xuid = xuid;
         this.addedBy = addedBy;
         this.addedAt = System.currentTimeMillis();
+        this.timeout = timeout;
     }
 
     public String getName() {
@@ -73,6 +79,18 @@ public class WhitelistEntry {
         this.addedAt = addedAt;
     }
 
+    public long getTimeout() {
+        return timeout;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
+    public boolean isExpired() {
+        return timeout > 0 && System.currentTimeMillis() > timeout;
+    }
+
     public Map<String, Object> serialize() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("name", name);
@@ -83,6 +101,9 @@ public class WhitelistEntry {
         }
         map.put("added-by", addedBy);
         map.put("added-at", addedAt);
+        if (timeout > 0) {
+            map.put("timeout", timeout);
+        }
         return map;
     }
 
@@ -101,6 +122,10 @@ public class WhitelistEntry {
         Object addedAtObj = map.get("added-at");
         if (addedAtObj instanceof Number) {
             entry.setAddedAt(((Number) addedAtObj).longValue());
+        }
+        Object timeoutObj = map.get("timeout");
+        if (timeoutObj instanceof Number) {
+            entry.setTimeout(((Number) timeoutObj).longValue());
         }
         return entry;
     }
